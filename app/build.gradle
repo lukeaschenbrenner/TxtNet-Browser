@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 31
+
+    defaultConfig {
+        applicationId "com.txtnet.txtnetbrowser"
+        minSdk 19
+        targetSdk 31
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    implementation 'org.brotli:dec:0.1.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    //implementation fileTree(include: ['*.jar'], dir: 'libs')
+    //implementation project(':blur-behind')
+    //implementation files('libs/listviewanimations_lib-core-slh.3.1.0.jar')
+    //implementation files('libs/listviewanimations_lib-core.3.1.0.jar')
+    //implementation files('libs/nineoldandroids-2.4.0.jar')
+    //implementation files('libs/butterknife-5.1.2.jar')
+
+    //might not need anymore
+    implementation 'com.jakewharton:butterknife:10.2.3'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
+
+    //implementation 'uk.co.ribot:easyadapter:1.5.0'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.45'
+    //implementation group: "com.twilio.sdk", name: "twilio", version: "8.24.0"
+
+}

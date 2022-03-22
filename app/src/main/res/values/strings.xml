@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TxtNet Browser</string>
+    <string name="check_connection">Please check your internet connection.</string>
+    <string name="forward_arrow">Forward Arrow</string>
+    <string name="go_button">GO</string>
+    <string name="descr_overflow_button">Options</string>
+</resources>
