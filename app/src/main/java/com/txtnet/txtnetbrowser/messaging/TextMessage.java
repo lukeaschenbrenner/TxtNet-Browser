@@ -55,8 +55,14 @@ public class TextMessage {
         }
 
         if(textBuffer[index] == null){
+            if(part.length() == 157){
+                //twilio chopped off the last \n character
+                part =  part + "\n";
+            }
             textBuffer[index] = part;
             howManyAdded++;
+            MainBrowserScreen.onProgressChanged(howManyAdded, textBuffer.length);
+
         }
 
 
@@ -121,7 +127,7 @@ public class TextMessage {
                 MainBrowserScreen.webView.loadDataWithBaseURL(url, result.toString(), "text/html", "utf-8", null);
 
             } catch (Exception e) {
-                e.printStackTrace(); //exception DOES occur in this example
+                e.printStackTrace();
             }
 
         }

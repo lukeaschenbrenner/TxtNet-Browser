@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 
-
+//This class is not used, but keeping some methods for future reference
 public class InstructionsActivity extends Activity {
 
     private static final String TAG = "InstructionActivity";
@@ -16,7 +16,7 @@ public class InstructionsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_instructions);
+        setContentView(R.layout.activity_main);
 
     }
 
@@ -24,7 +24,7 @@ public class InstructionsActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.instructions, menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
@@ -34,7 +34,7 @@ public class InstructionsActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.setdefaultsms) {
             return true;
         }
         return super.onOptionsItemSelected(item);

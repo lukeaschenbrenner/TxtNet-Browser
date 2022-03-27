@@ -3,9 +3,12 @@
     package="com.txtnet.txtnetbrowser">
 
     <!-- Remove old internet perms soon, maybe have access phone state?-->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!--uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /-->
+
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS"/>
@@ -44,10 +47,16 @@
 
         </activity>
 
-        <activity
-            android:name=".InstructionsActivity"
-            android:label="@string/title_activity_instructions" >
-        </activity>
+        <activity android:name="com.txtnet.txtnetbrowser.AppIntroActivity"
+            android:label="App Introduction"
+            android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
+        />
+        <activity android:name="com.txtnet.txtnetbrowser.UnsupportedDeviceActivity"
+            android:label="Unsupported Device"
+            android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
+            />
 
         <receiver android:name=".messaging.TextMessageHandler$SMSReceiver"
             android:enabled="true"

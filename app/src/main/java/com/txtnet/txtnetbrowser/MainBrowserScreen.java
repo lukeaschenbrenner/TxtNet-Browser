@@ -3,18 +3,27 @@ package com.txtnet.txtnetbrowser;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.IntentCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,59 +38,114 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.appintro.AppIntroFragment;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
+import com.txtnet.txtnetbrowser.webview.MyWebView;
 import com.txtnet.txtnetbrowser.webview.MyWebViewClient;
 
-public class MainBrowserScreen extends AppCompatActivity {
-    /** TODO: Add custom CSS files for commonly visited websites to save on space *
-     TODO: fancy encoded post request, maybe include app version
-     TODO: allow submitting basic web forms as post request
-     TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required*/
+import android.content.ClipboardManager;
 
-    WebView webView;
-    SwipeRefreshLayout swipe;
-    EditText editText;
-    ProgressBar progressBar;
-    ImageButton back, forward, stop, refresh, homeButton;
-    Button goButton;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class MainBrowserScreen extends AppCompatActivity {
+    /**
+     * TODO: Add custom CSS files for commonly visited websites to save on space *
+     * TODO: fancy encoded post request, maybe include app version
+     * TODO: allow submitting basic web forms as post request
+     * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
+     * <p>
+     * <p>
+     * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
+     * TODO: ADD "SET PHONE NUMBER" OPTION IN APP
+     */
+
+    public static MyWebView webView;
+    public static SwipeRefreshLayout swipe;
+    EditText urlEditText;
+    public static ProgressBar progressBar;
+    ImageButton back, forward, stop, refresh, homeButton, goButton;
+    private static String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_PHONE_STATE};
+
     private static final int[] PERMISSIONS_REQUEST_ID = {1, 2, 3, 4, 5};
 
+
+    void showIntroActivity() {
+        Intent intent = new Intent(this, AppIntroActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+        Log.d("APP", "STARTED INTRO");
+        ActivityCompat.finishAffinity(MainBrowserScreen.this);
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean isAccessed = prefs.getBoolean(getString(R.string.is_accessed), false);
+        if (!isAccessed) {
+            SharedPreferences.Editor edit = prefs.edit();
+            edit.putBoolean(getString(R.string.is_accessed), Boolean.TRUE);
+            edit.apply();
+            showIntroActivity();
+            return;
+        }
+
+
+
+        setContentView(R.layout.activity_main);
+
+        boolean missingPerms = false;
+        //above is the intro screen, but below we manually check for permissions just in case
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS};
-            for(int i = 0; i < permissions.length; i++){
-                if(checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED){
+            for (int i = 0; i < permissions.length; i++) {
+                if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
                     ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_ID[i]);
+                }
+            }
+            for (int i = 0; i < permissions.length; i++) {
+                if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
+                    missingPerms = true;
                 }
             }
         }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance();
 
-        setContentView(R.layout.activity_main);
+        PackageManager pm = getPackageManager();
+        if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) || missingPerms) { //disable the app
+            Intent intent = new Intent(this, UnsupportedDeviceActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            Log.d("APP", "UNSUPPORTED");
+            startActivity(intent);
+            ActivityCompat.finishAffinity(MainBrowserScreen.this);
+        }
+
 
 
         Uri startIntentData = getIntent().getData();
 
 
-        editText = (EditText) findViewById(R.id.web_address_edit_text);
+        urlEditText = (EditText) findViewById(R.id.web_address_edit_text);
         back = (ImageButton) findViewById(R.id.back_arrow);
         forward = (ImageButton) findViewById(R.id.forward_arrow);
         stop = (ImageButton) findViewById(R.id.stop);
-        goButton = (Button) findViewById(R.id.go_button);
+        goButton = (ImageButton) findViewById(R.id.go_button);
         refresh = (ImageButton) findViewById(R.id.refresh);
         homeButton = (ImageButton) findViewById(R.id.home);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        progressBar.setMax(100);
         progressBar.setVisibility(View.GONE);
-        webView = (WebView) findViewById(R.id.web_view);
+        webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
         swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
+
+
+
+        TextMessageHandler handler = TextMessageHandler.getInstance();
 
         if (startIntentData != null) {
             String intentUrl = startIntentData.toString();
@@ -94,106 +158,82 @@ public class MainBrowserScreen extends AppCompatActivity {
             }
         } else {
             startWebView(null);
+            //TODO: Replace with markdown welcome page
         }
     }
-        public void startWebView(String url){
 
-            webView.getSettings().setJavaScriptEnabled(true);
-            webView.getSettings().setUseWideViewPort(true);
-            webView.getSettings().setLoadWithOverviewMode(true);
-            webView.getSettings().setSupportZoom(true);
-            webView.getSettings().setSupportMultipleWindows(true);
-            webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-            webView.setBackgroundColor(Color.WHITE);
+    public void startWebView(String url) {
 
-            swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    webView.reload();
+        registerForContextMenu(webView);
+
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (webView.getUrl() != null) {
+                    loadUrl(TextMessage.url);
                 }
-            });
+            }
+        });
 
-            webView.setWebChromeClient(new WebChromeClient() {
-                @Override
-                public void onProgressChanged(WebView view, int newProgress) {
-                    super.onProgressChanged(view, newProgress);
-                    progressBar.setProgress(newProgress);
-                    if (newProgress < 100 && progressBar.getVisibility() == ProgressBar.GONE) {
-                        progressBar.setVisibility(ProgressBar.VISIBLE);
-                    }
-                    if (newProgress == 100) {
-                        progressBar.setVisibility(ProgressBar.GONE);
-                        swipe.setRefreshing(false);
-                    } else {
-                        progressBar.setVisibility(ProgressBar.VISIBLE);
-                    }
-                }
-            });
-        webView.setWebViewClient(new CosmosWebViewClient(this));
-        webView.setWebViewClient(new MyWebViewClient());
+//            webView.setWebChromeClient(new WebChromeClient() {
+//                @Override
+//                public void onProgressChanged(WebView view, int newProgress) {
+//                    super.onProgressChanged(view, newProgress);
+//                    progressBar.setProgress(newProgress);
+//                    if (newProgress < 100 && progressBar.getVisibility() == ProgressBar.GONE) {
+//                        progressBar.setVisibility(ProgressBar.VISIBLE);
+//                    }
+//                    if (newProgress == 100) {
+//                        progressBar.setVisibility(ProgressBar.GONE);
+//                        swipe.setRefreshing(false);
+//                    } else {
+//                        progressBar.setVisibility(ProgressBar.VISIBLE);
+//                    }
+//                }
+//            });
+        webView.setWebViewClient(new MyWebViewClient(this));
 
 
-            urlEditText.setOnEditorActionListener(
-                    new EditText.OnEditorActionListener() {
-                        @Override
-                        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-// If triggered by an enter key, close the keyboard and load the site
-                            if (actionId == EditorInfo.IME_ACTION_GO) {
-                                hideAllExpandableViews(MainBrowserScreen.this);
-                                hideKeyboard(MainBrowserScreen.this);
-                                //?????? do we need hidekeyboard?
-                                MainBrowserScreen.webView.requestFocus();
+        urlEditText.setOnEditorActionListener(
+                new EditText.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
-                                try {
-                                    TextMessage.url = urlEditText.getText().toString();
-                                    handler.sendTextMessage(urlEditText.getText().toString());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                return true;
-                            }
-                            return false;
+                        if (actionId == EditorInfo.IME_ACTION_DONE) {
+                            loadUrl(urlEditText.getText().toString());
+                            return true;
                         }
-                    });
+                        return false;
+                    }
+                });
 
-            urlEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View view, boolean isFocused) {
-                    if(isFocused){
-                        urlEditText.setSelection(urlEditText.getText().length());
-                        searchBar.getChildAt(1).setVisibility(View.GONE);
-                        searchBar.getChildAt(2).setVisibility(View.GONE);
-                        hideAllExpandableViews(MainBrowserScreen.this);
-                    }
-                    else{
-                        //This sets the cursor of the edit text back to the front so that the url is visible when focus changes.
-                        urlEditText.setSelection(0);
-                        searchBar.getChildAt(1).setVisibility(View.VISIBLE);
-                        searchBar.getChildAt(2).setVisibility(View.VISIBLE);
-                    }
+        urlEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean isFocused) {
+                if (isFocused) {
+                    urlEditText.setSelection(urlEditText.getText().length());
+
+                } else {
+                    //This sets the cursor of the edit text back to the front so that the url is visible when focus changes.
+                    urlEditText.setSelection(0);
+
                 }
-            });
+            }
+        });
 
 
-
-
-
-
-
-            goButton.setOnClickListener(new View.OnClickListener() {
+        goButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 try {
-                    if (!NetworkState.connectionAvailable(MainBrowserScreen.this)) {
-                        Toast.makeText(MainBrowserScreen.this, R.string.check_connection, Toast.LENGTH_SHORT).show();
-                    } else {
 
-                        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                        inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-                        webView.loadUrl("https://" + editText.getText().toString());
-                        editText.setText("");
-                    }
+                        //InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                        //inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
+                        //TextMessageHandler.getInstance().sendTextMessage(urlEditText.getText().toString());
+
+                        loadUrl(urlEditText.getText().toString());
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -228,19 +268,28 @@ public class MainBrowserScreen extends AppCompatActivity {
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                webView.reload();
+                loadUrl(TextMessage.url);
             }
         });
         homeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                webView.loadUrl("http://google.com");
+
+
+                webView.loadUrl("file:///android_asset/welcome.md.html");
+                //urlEditText.setText(url);
+
+                //TextMessageHandler.getInstance().sendTextMessage(urlEditText.getText().toString());
             }
         });
 
-        if(url != null){
-            webView.loadUrl(url);
+        if (url != null) {
+            TextMessageHandler.getInstance().sendTextMessage(url);
+            urlEditText.setText(url);
+        }else{
+            webView.loadUrl("file:///android_asset/welcome.md.html");
         }
+
     }
 
     public void UpdateMyText(String mystr) {
@@ -249,12 +298,13 @@ public class MainBrowserScreen extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if(grantResults.length == 0) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length == 0) {
             Toast.makeText(this, "No permissions granted!", Toast.LENGTH_SHORT).show();
             return;
         }
-        for(int i = 0; i < grantResults.length; i++) {
-            if(grantResults[i] == PackageManager.PERMISSION_DENIED){
+        for (int i = 0; i < grantResults.length; i++) {
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                 Toast.makeText(this, "Permission error: not granted: " + permissions[i], Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -264,36 +314,20 @@ public class MainBrowserScreen extends AppCompatActivity {
         //enableApp here... we know the permissions are granted by this line.
     }
 
-    public void onResume(){
-        findViewById(R.id.rootWebView).requestFocus();
-        super.onResume();
-    }
-
-    public void clickedSettings(View v){
-     /*   moreOptionsView.setVisibility(View.INVISIBLE);
-        int visibility = tabsListView.getVisibility();
-        if(visibility == View.VISIBLE){
-            tabsListView.setVisibility(View.INVISIBLE);
+    @Override
+    public void onResume() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean isAccessed = prefs.getBoolean(getString(R.string.is_accessed), false);
+        if (!isAccessed) {
+            SharedPreferences.Editor edit = prefs.edit();
+            edit.putBoolean(getString(R.string.is_accessed), Boolean.TRUE);
+            edit.apply();
+            showIntroActivity();
+        } else {
+            super.onResume();
+            findViewById(R.id.web_view).requestFocus();
         }
-        else{
-            tabsListView.setVisibility(View.VISIBLE);
-        }
-        */
-        Intent intent = new Intent(this, DefaultSMSActivity.class);
-        startActivity(intent);
-
-
     }
-
-    public void showMenu(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-
-        // This activity implements OnMenuItemClickListener
-        popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.actions);
-        popup.show();
-    }
-
 
 
     @Override
@@ -327,42 +361,111 @@ public class MainBrowserScreen extends AppCompatActivity {
     public void showPopup(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.actions, popup.getMenu());
+        inflater.inflate(R.menu.menu, popup.getMenu());
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch(item.getItemId()){
+                    case R.id.options:
+                        Intent intent = new Intent(v.getContext(), DefaultSMSActivity.class);
+                        startActivity(intent);
+                        return true;
+                    case R.id.help:
+                        System.out.println("E");
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+
+
         popup.show();
+
     }
 
-    public void showMenu(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
 
-        // This activity implements OnMenuItemClickListener
-        popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.actions);
-        popup.show();
+
+    //If making a separate activity that implements OnMenuItemClickListener:
+//    public void showMenu(View v) {
+//        PopupMenu popup = new PopupMenu(this, v);
+//
+//        // This activity implements OnMenuItemClickListener
+//        popup.setOnMenuItemClickListener(onMenuItemClick(popup.));
+//        popup.inflate(R.menu.menu);
+//        popup.show();
+//    }
+//
+
+
+    //OLD CODE DONT USE METHOD
+    public boolean clickedOptions(View v) {
+     /*   moreOptionsView.setVisibility(View.INVISIBLE);
+        int visibility = tabsListView.getVisibility();
+        if(visibility == View.VISIBLE){
+            tabsListView.setVisibility(View.INVISIBLE);
+        }
+        else{
+            tabsListView.setVisibility(View.VISIBLE);
+        }
+        */
+
+        return true;
+
     }
 
-    public void showMenu(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-
-        // This activity implements OnMenuItemClickListener
-        popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.actions);
-        popup.show();
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.archive:
-                archive(item);
-                return true;
-            case R.id.delete:
-                delete(item);
-                return true;
-            default:
-                return false;
+    public static void onProgressChanged(int newProgress, int total) {
+        progressBar.setMax(total);
+        progressBar.setProgress(newProgress);
+        if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {
+            progressBar.setVisibility(ProgressBar.VISIBLE);
+        }
+        if (newProgress >= total) {
+            progressBar.setVisibility(ProgressBar.GONE);
+            swipe.setRefreshing(false);
+        } else {
+            progressBar.setVisibility(ProgressBar.VISIBLE);
         }
     }
 
+    public void loadUrl(String urlToLoad){
+        hideKeyboard(MainBrowserScreen.this);
+        //?????? do we need hidekeyboard?
+        MainBrowserScreen.webView.requestFocus();
+        try {
 
+            if (!NetworkState.connectionAvailable(this, this)) {
+                Toast.makeText(MainBrowserScreen.this, R.string.check_connection, Toast.LENGTH_SHORT).show();
+            } else {
 
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
+                TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
+                TextMessage.url = urlToLoad;
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        WebView webView = (WebView) v;
+        WebView.HitTestResult result = webView.getHitTestResult();
+
+        if (result != null) {
+            if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                String linkToCopy = result.getExtra();
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("URL", linkToCopy);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "Link copied!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }

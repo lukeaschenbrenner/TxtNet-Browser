@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.provider.Telephony;
-import dwai.cosmosbrowser.FullTextMessage;
-import dwai.cosmosbrowser.MainBrowserScreen;
+
+import com.txtnet.txtnetbrowser.MainBrowserScreen;
 
 
 public class TextMessageHandler {
@@ -55,6 +55,10 @@ public class TextMessageHandler {
         //TODO: Fix the above and make them useful eg. loading animation!
 
         SmsManager smsManager = SmsManager.getDefault();
+        if(!body.contains("http") && !body.contains("."))
+        {
+            MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><h2>Invalid URL, please try again.</h2>", "text/html", "utf-8", null);
+        }//TODO: make url validator system
         if(body.length() > 160) {
             //Because the body of the message can be larger than tha 140 bit limit presented, the message must be split up.
             ArrayList<String> parts = smsManager.divideMessage(body);
@@ -63,7 +67,9 @@ public class TextMessageHandler {
         else{
             smsManager.sendTextMessage(PHONE_NUMBER,null, body,sentIntent,deliveryIntent);
         }
-        MainBrowserScreen.webView.loadDataWithBaseURL(null, "<h1>Loading...</h1>", "text/html", "utf-8", null);
+
+        //TODO: loading page?
+        //MainBrowserScreen.webView.loadDataWithBaseURL(null, "<h1>Loading...</h1>", "text/html", "utf-8", null);
 
     }
 

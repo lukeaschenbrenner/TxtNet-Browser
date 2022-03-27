@@ -18,7 +18,7 @@ public class Decode {
                 //input_workon[s] = s;
             }
         }
-        basest.Encode encoder = new basest.Encode();
+        com.txtnet.txtnetbrowser.basest.Encode encoder = new com.txtnet.txtnetbrowser.basest.Encode();
         int[] output_data = encoder.encode_raw(input_base, output_base, input_ratio, output_ratio, input_workon);
 
         output_data = Arrays.copyOfRange(output_data, 0, output_data.length - padding_length);

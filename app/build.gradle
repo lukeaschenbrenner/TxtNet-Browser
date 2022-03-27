@@ -1,7 +1,9 @@
 plugins {
     id 'com.android.application'
 }
-
+repositories {
+    maven { url "https://jitpack.io" }
+}
 android {
     compileSdk 31
 
@@ -53,5 +55,6 @@ dependencies {
     //implementation 'uk.co.ribot:easyadapter:1.5.0'
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.45'
     //implementation group: "com.twilio.sdk", name: "twilio", version: "8.24.0"
+    implementation 'com.github.AppIntro:AppIntro:6.2.0'
 
 }

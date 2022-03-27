@@ -3,9 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/drawable/back_arrow.xml" value="0.3555" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/drawable/ic_baseline_error_24.xml" value="0.242" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/drawable/ic_baseline_search_24.xml" value="0.3555" />
         <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/drawable/round_edit_text.xml" value="0.3555" />
-        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/layout/activity_defaultsms.xml" value="0.1" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/layout/unsupported_device.xml" value="0.2278751603249252" />
         <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/menu/appmenu.xml" value="0.3009833262077811" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/menu/menu.xml" value="0.3009833262077811" />
+        <entry key="..\:/Users/Luke_Aschenbrenner/AndroidStudioProjects/TxtNetBrowser/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.242" />
       </map>
     </option>
   </component>

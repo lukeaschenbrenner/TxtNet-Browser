@@ -4,4 +4,5 @@
     <string name="forward_arrow">Forward Arrow</string>
     <string name="go_button">GO</string>
     <string name="descr_overflow_button">Options</string>
+    <string name="is_accessed">isAccessed</string>
 </resources>
