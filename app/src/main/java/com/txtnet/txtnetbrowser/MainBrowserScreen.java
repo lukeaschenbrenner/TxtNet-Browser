@@ -1,5 +1,6 @@
 package com.txtnet.txtnetbrowser;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
@@ -9,6 +10,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -18,15 +20,19 @@ import android.os.Bundle;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
@@ -69,7 +75,8 @@ public class MainBrowserScreen extends AppCompatActivity {
     private static String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_PHONE_STATE};
 
     private static final int[] PERMISSIONS_REQUEST_ID = {1, 2, 3, 4, 5};
-
+    public static SharedPreferences preferences;
+    public static Context mContext;
 
     void showIntroActivity() {
         Intent intent = new Intent(this, AppIntroActivity.class);
@@ -85,11 +92,12 @@ public class MainBrowserScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        preferences = getSharedPreferences( getPackageName() + "_preferences", MODE_PRIVATE);
+        mContext = this;
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean isAccessed = prefs.getBoolean(getString(R.string.is_accessed), false);
+        boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
         if (!isAccessed) {
-            SharedPreferences.Editor edit = prefs.edit();
+            SharedPreferences.Editor edit = preferences.edit();
             edit.putBoolean(getString(R.string.is_accessed), Boolean.TRUE);
             edit.apply();
             showIntroActivity();
@@ -262,6 +270,16 @@ public class MainBrowserScreen extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 webView.stopLoading();
+                TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
+                TextMessageHandler.getInstance().sendTextMessage("STOP");
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextMessageHandler.getInstance().sendTextMessage("unstop");
+                    }
+                }, 1000);
+
             }
         });
 
@@ -371,8 +389,35 @@ public class MainBrowserScreen extends AppCompatActivity {
                         Intent intent = new Intent(v.getContext(), DefaultSMSActivity.class);
                         startActivity(intent);
                         return true;
-                    case R.id.help:
-                        System.out.println("E");
+                    case R.id.selectPhoneNumber:
+                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), getResources().getString(R.string.default_phone));
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                        builder.setTitle("Phone Number (no dashes)");
+                        View viewInflated = LayoutInflater.from(v.getContext()).inflate(R.layout.phone_select_dialog, (ViewGroup) v.getParent(), false);
+                        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
+                        input.setText(phoneNumber);
+                        builder.setView(viewInflated);
+
+
+                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                SharedPreferences.Editor edit = preferences.edit();
+                                edit.putString(getString(R.string.phone_number), input.getText().toString());
+                                edit.apply();
+
+                            }
+                        });
+                        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder.show();
                         return true;
                     default:
                         return false;
@@ -441,8 +486,8 @@ public class MainBrowserScreen extends AppCompatActivity {
 
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
-                TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
                 TextMessage.url = urlToLoad;
+                TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
 
             }
 

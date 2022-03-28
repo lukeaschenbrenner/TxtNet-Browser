@@ -7,9 +7,9 @@
         android:icon="@drawable/stop_icon"
         android:title="Options"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/help"
+    <item android:id="@+id/selectPhoneNumber"
         android:icon="@drawable/home_icon"
-        android:title="Help"
+        android:title="Change Server Phone Number"
         />
 
 </menu>

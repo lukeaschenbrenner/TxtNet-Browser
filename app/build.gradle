@@ -56,5 +56,6 @@ dependencies {
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.45'
     //implementation group: "com.twilio.sdk", name: "twilio", version: "8.24.0"
     implementation 'com.github.AppIntro:AppIntro:6.2.0'
+    implementation 'com.google.android.material:material:1.4.0'
 
 }

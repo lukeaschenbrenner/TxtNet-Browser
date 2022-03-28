@@ -147,7 +147,7 @@
                     android:inputType="textWebEditText"
                     android:textColor="@color/black"
                     android:textColorHint="@color/secondary_hint"
-                    android:textSize="13sp">
+                    android:textSize="20sp">
 
                 </EditText>
                   </RelativeLayout>
@@ -198,7 +198,7 @@
             android:id="@+id/swipe"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1.4">
+            android:layout_weight="1.9">
 
 
             <com.txtnet.txtnetbrowser.webview.MyWebView

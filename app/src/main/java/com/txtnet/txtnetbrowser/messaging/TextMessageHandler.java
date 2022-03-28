@@ -6,11 +6,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
+
+import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
 
 import androidx.appcompat.app.AlertDialog;
@@ -26,7 +30,10 @@ import com.txtnet.txtnetbrowser.MainBrowserScreen;
 
 public class TextMessageHandler {
     private static TextMessageHandler single_instance = null;
-    private TextMessageHandler(){}
+    public static String PHONE_NUMBER = null;
+    private TextMessageHandler(){
+        PHONE_NUMBER = MainBrowserScreen.preferences.getString(MainBrowserScreen.mContext.getResources().getString(R.string.phone_number), MainBrowserScreen.mContext.getResources().getString(R.string.default_phone));
+    }
     public static TextMessageHandler getInstance(){
         if(single_instance == null){
             single_instance = new TextMessageHandler();
@@ -35,7 +42,7 @@ public class TextMessageHandler {
     }
 
     private final String TAG = "TextMessageHandler";
-    public static final String PHONE_NUMBER = "8884842216"; //twilio
+    //public static String PHONE_NUMBER = null; //twilio
     //public static final String PHONE_NUMBER = "0014158397780"; //plivo
 
 
@@ -43,9 +50,9 @@ public class TextMessageHandler {
     /**
      *
      * @param body Body of the message a person is trying to send.
-     * @param to Who the person is sending the text message to. Must be 10 digits.
      */
     public void sendTextMessage(String body){
+        PHONE_NUMBER = MainBrowserScreen.preferences.getString(MainBrowserScreen.mContext.getResources().getString(R.string.phone_number), MainBrowserScreen.mContext.getResources().getString(R.string.default_phone));
 
         if(body == null || PHONE_NUMBER == null){
             Log.e(TAG, "***** ERROR EITHER BODY OR TO IS NULL!");
@@ -55,11 +62,11 @@ public class TextMessageHandler {
         //TODO: Fix the above and make them useful eg. loading animation!
 
         SmsManager smsManager = SmsManager.getDefault();
-        if(!body.contains("http") && !body.contains("."))
+        if(!body.contains("http") && !body.contains(".") && !body.contains("STOP") && !body.contains("unstop") && !body.contains("Website Cancel"))
         {
             MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><h2>Invalid URL, please try again.</h2>", "text/html", "utf-8", null);
         }//TODO: make url validator system
-        if(body.length() > 160) {
+        else if(body.length() > 160) {
             //Because the body of the message can be larger than tha 140 bit limit presented, the message must be split up.
             ArrayList<String> parts = smsManager.divideMessage(body);
             smsManager.sendMultipartTextMessage(PHONE_NUMBER, null, parts, null, null);
@@ -69,7 +76,7 @@ public class TextMessageHandler {
         }
 
         //TODO: loading page?
-        //MainBrowserScreen.webView.loadDataWithBaseURL(null, "<h1>Loading...</h1>", "text/html", "utf-8", null);
+        MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><br><center><h1>Loading...</h1></center>", "text/html", "utf-8", null);
 
     }
 
@@ -127,7 +134,7 @@ public class TextMessageHandler {
                         try {
                             int messageNumber = Base10Conversions.r2v(Message.substring(0, 2));
                             String messageBody = Message.substring(2);
-                            Log.d("msg body: ", Message.substring(2));
+                           // Log.d("msg body: ", Message.substring(2));
                             // txtmsg.addPart(Integer.parseInt(textOrder), Message.substring(2));
                             txtmsg.addPart(messageNumber, messageBody);
                         } catch (Exception e) {

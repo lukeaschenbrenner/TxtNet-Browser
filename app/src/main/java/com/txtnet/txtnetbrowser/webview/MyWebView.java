@@ -22,13 +22,13 @@ public class MyWebView extends WebView {
         this.setWebViewClient(webViewClient);
 
         getSettings().setJavaScriptEnabled(false);
-        //getSettings().setUseWideViewPort(true);
-        //webView.getSettings().setLoadWithOverviewMode(true);
+        getSettings().setUseWideViewPort(true);
+        getSettings().setLoadWithOverviewMode(true);
         getSettings().setSupportZoom(true);
+        //getSettings().setBlockNetworkLoads(true);
         setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         setBackgroundColor(Color.WHITE);
         getSettings().setDomStorageEnabled(true);
-        getSettings().setBlockNetworkLoads(true);
         getSettings().setAllowFileAccess(true);
         getSettings().setSupportMultipleWindows(false);
     }
