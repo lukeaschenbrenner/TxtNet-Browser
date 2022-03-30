@@ -25,7 +25,9 @@ public class Base10Conversions {
         int alphabet_length = SYMBOL_TABLE.length;
         String[] result = new String[0];
 
-        for(int num : tempNum) {
+        for(int i = 0; i < tempNum.length; i++) {
+            int num = tempNum[i];
+            int originalNum = num;
             if (num == 0) {
                 result = new String[1];
                 result[0] = (SYMBOL_TABLE[0] + SYMBOL_TABLE[0]);
@@ -33,13 +35,16 @@ public class Base10Conversions {
             while (num > 0) {
                 String[] tempArr = new String[result.length + 1];
                 tempArr[0] = SYMBOL_TABLE[num % alphabet_length];
-                System.arraycopy(result, 0, tempArr, 1, result.length);
+                //System.arraycopy(result, 0, tempArr, 1, result.length);
+                System.arraycopy(tempArr, 0, result, 0, result.length);
                 num /= alphabet_length;
+                result = tempArr;
             }
-            if (num < alphabet_length && num != 0) {
+            if (originalNum < alphabet_length && originalNum != 0) {
                 String[] tempArr = new String[result.length + 1];
                 tempArr[0] = SYMBOL_TABLE[0];
                 System.arraycopy(result, 0, tempArr, 1, result.length);
+                result = tempArr;
             }
         }
         return result;

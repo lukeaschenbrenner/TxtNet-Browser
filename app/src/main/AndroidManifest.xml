@@ -78,6 +78,11 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".receiver.SmsSentReceiver" >
+        </receiver>
+        <receiver android:name=".receiver.SmsDeliveredReceiver" >
+        </receiver>
+
 
         <!--- The below is required to allow Android to consider this app as a default SMS app, so that the number can be blocked & to delete message history with the number -->
 

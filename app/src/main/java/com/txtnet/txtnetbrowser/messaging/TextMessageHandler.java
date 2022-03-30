@@ -1,6 +1,8 @@
 package com.txtnet.txtnetbrowser.messaging;
 
 
+import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -21,11 +24,16 @@ import androidx.appcompat.app.AlertDialog;
 
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.provider.Telephony;
+import android.widget.Toast;
 
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
+import com.txtnet.txtnetbrowser.basest.Encode;
+import com.txtnet.txtnetbrowser.receiver.SmsDeliveredReceiver;
+import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
 
 
 public class TextMessageHandler {
@@ -58,22 +66,101 @@ public class TextMessageHandler {
             Log.e(TAG, "***** ERROR EITHER BODY OR TO IS NULL!");
             return;
         }
-        PendingIntent sentIntent = null, deliveryIntent = null;
-        //TODO: Fix the above and make them useful eg. loading animation!
+       // PendingIntent sentIntent = null, deliveryIntent = null;
+
 
         SmsManager smsManager = SmsManager.getDefault();
         if(!body.contains("http") && !body.contains(".") && !body.contains("STOP") && !body.contains("unstop") && !body.contains("Website Cancel"))
         {
             MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><h2>Invalid URL, please try again.</h2>", "text/html", "utf-8", null);
         }//TODO: make url validator system
-        else if(body.length() > 160) {
-            //Because the body of the message can be larger than tha 140 bit limit presented, the message must be split up.
-            ArrayList<String> parts = smsManager.divideMessage(body);
-            smsManager.sendMultipartTextMessage(PHONE_NUMBER, null, parts, null, null);
-        }
         else{
-            smsManager.sendTextMessage(PHONE_NUMBER,null, body,sentIntent,deliveryIntent);
+
+
+            byte[] byteArray = body.getBytes();
+            int[] bytesInt = new int[byteArray.length];
+            for(int i = 0; i < bytesInt.length; i++){
+                bytesInt[i] = byteArray[i] & 0xFF; //bitwise AND operator, converts signed byte to unsigned
+            }
+            Encode encoder = new Encode();
+            int[] encodedInts = encoder.encode_raw(256, 114, 134, 158, bytesInt);
+            String output = "";
+
+            for(int i = 0; i < encodedInts.length; i++){
+                output += SYMBOL_TABLE[encodedInts[i]];
+            }
+
+
+            final int NUM_CHARS_PER_SMS = 158;
+            ArrayList<String> smsQueue =  new ArrayList<>();
+
+            int j;
+            for(j = 0; j < output.length(); j += NUM_CHARS_PER_SMS){
+                smsQueue.add(output.substring(j, j+NUM_CHARS_PER_SMS));
+            }
+            String[] smsFinalQueue = new String[smsQueue.size()];
+            for(j = 0; j < smsQueue.size(); j++){
+                int[] jArr = {j};
+                StringBuffer sb = new StringBuffer();
+                String[] indices = Base10Conversions.v2r(jArr);
+
+                sb.append(indices[0]);
+                String str = sb.toString();
+
+                if(j == smsQueue.size()-1){
+                    smsQueue.set(j, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(j));
+                }else{
+                    smsQueue.set(j, str + smsQueue.get(j));
+                }
+            }
+
+
+            int howManyTextsToExpect = (int) Math.ceil(smsQueue.size());
+
+
+            ArrayList<PendingIntent> sentPendingIntents = new ArrayList<PendingIntent>();
+            ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<PendingIntent>();
+            PendingIntent sentPI = PendingIntent.getBroadcast(MainBrowserScreen.mContext, 0,
+                    new Intent(MainBrowserScreen.mContext, SmsSentReceiver.class), 0);
+
+            PendingIntent deliveredPI = PendingIntent.getBroadcast(MainBrowserScreen.mContext, 0,
+                    new Intent(MainBrowserScreen.mContext, SmsDeliveredReceiver.class), 0);
+            try {
+                SmsManager sms = SmsManager.getDefault();
+                for (int i = 0; i < smsQueue.size(); i++) {
+                    sentPendingIntents.add(i, sentPI);
+
+                    deliveredPendingIntents.add(i, deliveredPI);
+                }
+
+                for(int i = 0; i < smsQueue.size(); i++){
+                    Handler handler = new Handler();
+                    int finalI = i;
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            sms.sendTextMessage(PHONE_NUMBER, null, smsQueue.get(finalI), sentPendingIntents.get(finalI), deliveredPendingIntents.get(finalI));
+                        }
+                    }, 1000L * i);
+
+                }
+
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+                Toast.makeText(MainBrowserScreen.mContext, "SMS sending failed...",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
+
+        // else if(body.length() > 160) {
+       //     //Because the body of the message can be larger than tha 140 bit limit presented, the message must be split up.
+       //     ArrayList<String> parts = smsManager.divideMessage(body);
+       //     smsManager.sendMultipartTextMessage(PHONE_NUMBER, null, parts, null, null);
+       // }
+       // else{
+       //     smsManager.sendTextMessage(PHONE_NUMBER,null, body,sentIntent,deliveryIntent);
+       // }
 
         //TODO: loading page?
         MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><br><center><h1>Loading...</h1></center>", "text/html", "utf-8", null);
