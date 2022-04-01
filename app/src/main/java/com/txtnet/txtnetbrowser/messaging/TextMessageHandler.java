@@ -70,11 +70,11 @@ public class TextMessageHandler {
 
 
         SmsManager smsManager = SmsManager.getDefault();
-        if(!body.contains("http") && !body.contains(".") && !body.contains("STOP") && !body.contains("unstop") && !body.contains("Website Cancel"))
-        {
-            MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><h2>Invalid URL, please try again.</h2>", "text/html", "utf-8", null);
-        }//TODO: make url validator system
-        else{
+     //   if(!body.contains("http") && !body.contains(".") && !body.contains("STOP") && !body.contains("unstop") && !body.contains("Website Cancel"))
+     //   {
+     //       MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><h2>Invalid URL, please try again.</h2>", "text/html", "utf-8", null);
+     //   }//TODO: make url validator system
+     //   else{
 
 
             byte[] byteArray = body.getBytes();
@@ -151,7 +151,7 @@ public class TextMessageHandler {
                 Toast.makeText(MainBrowserScreen.mContext, "SMS sending failed...",
                         Toast.LENGTH_SHORT).show();
             }
-        }
+     //   }
 
         // else if(body.length() > 160) {
        //     //Because the body of the message can be larger than tha 140 bit limit presented, the message must be split up.

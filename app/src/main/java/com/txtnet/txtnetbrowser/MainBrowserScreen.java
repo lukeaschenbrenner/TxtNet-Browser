@@ -57,14 +57,11 @@ import java.io.InputStream;
 
 public class MainBrowserScreen extends AppCompatActivity {
     /**
-     * TODO: Add custom CSS files for commonly visited websites to save on space *
-     * TODO: fancy encoded post request, maybe include app version
+     * TODO: Add custom CSS files for commonly visited websites to save on space
+     * TODO: maybe include app version in SMS sending so if the server changes we can accommodate
      * TODO: allow submitting basic web forms as post request
      * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
-     * <p>
-     * <p>
      * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
-     * TODO: ADD "SET PHONE NUMBER" OPTION IN APP
      */
 
     public static MyWebView webView;
