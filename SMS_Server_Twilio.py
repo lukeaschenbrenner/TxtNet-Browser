@@ -186,7 +186,7 @@ async def sendMessages(url):
     ##### USE THE BELOW FOR TESTING
     with open('soupHtml.html', 'w', encoding='utf-8') as f:
         f.write(final.decode())
-    #print(final.decode())
+    print(final.decode())
     #print('\n')
     #print(data)
     #print('\n')
@@ -207,7 +207,7 @@ async def sendMessages(url):
     encodedsms = encoder.encode_raw(compressed)
     #print(encodedsms)
 
-    #print(encodedsms)
+    print(encodedsms)
     #print('\n')
     #print(encodedsms)
     #print('\n')
@@ -229,7 +229,7 @@ async def sendMessages(url):
     i = 0
     for chunk in smsQueue:
         string = ''.join(v2r(i, SYMBOL_TABLE))
-        #print(string)
+        print(string)
         chunk = string + chunk
         #print(chunk)
         #print("\n")
@@ -266,11 +266,11 @@ async def sendMessages(url):
 #VALID_TAGS = ['head', 'base', 'a', 'abbr', 'address', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'dd', 'del', 'details', 'dfn', 'dialog', 'div', 'dl', 'em', 'fieldset', 'figure', 'footer', 'form', 'font', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'html', 'i', 'input', 'ins', 'keygen', 'legend', 'li', 'link', 'main', 'mark', 'menu', 'menuitem', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'section', 'select', 'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'wbr']
 #TODO: BRING BACK HEAD TAG, (maybe div?) it has the website title!
 
-VALID_TAGS = ['base', 'a', 'abbr', 'address', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'dd', 'del', 'details', 'dfn', 'dialog', 'dl', 'em', 'fieldset', 'figure', 'footer', 'form', 'font', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'html', 'i', 'input', 'ins', 'keygen', 'legend', 'li', 'link', 'main', 'mark', 'menu', 'menuitem', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'section', 'select', 'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'wbr']
+VALID_TAGS = ['base', 'a', 'abbr', 'address', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'dd', 'del', 'details', 'dfn', 'dialog', 'dl', 'em', 'fieldset', 'figure', 'footer', 'form', 'font', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'html', 'i', 'input', 'ins', 'keygen', 'legend', 'li', 'link', 'main', 'mark', 'menu', 'menuitem', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby', 's', 'samp', 'section', 'select', 'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'wbr', 'img'] #ok to have image here, we will remove source link
 #REMOVE_TAGS = ['script', 'head', 'img', 'iframe', 'form', 'style', 'template', 'div', 'noscript']
 
-VALID_ATTRIBUTES = []
-REMOVE_ATTRIBUTES = ['style', 'id', '*', 'class', 'target', 'rel'] 
+VALID_ATTRIBUTES = ['title', 'alt', 'href', 'width', 'height', 'cellpadding', 'cellspacing', 'border', 'bgcolor', 'valign', 'align', 'halign', 'colspan', 'size', 'color', 'action', 'method', 'type', 'size', 'name', 'value', 'alink', 'link', 'text', 'vlink', 'checked', 'maxlength', 'for', 'start', 'selected', 'valuetype', 'multiple', 'rules', 'summary', 'headers', 'align', 'bgcolor', 'char', 'charoff', 'height', 'scope', 'valign', 'width', 'color', 'face', 'span', 'datetime', 'cols', 'rows', 'readonly', 'label', 'nowrap', 'align', 'border', 'char', 'cite', 'compact', 'disabled', 'longdesc', 'name', 'value', 'valign', 'vspace']
+#REMOVE_ATTRIBUTES = ['style', 'id', '*', 'class', 'target', 'rel'] 
 #REMOVE_ATTRIBUTES = ['style', 'id', 'name', 'src', '*', 'class'] 
 
 def sanitize_html(data):
@@ -289,13 +289,18 @@ def sanitize_html(data):
     #return soup.renderContents()
 
     for tag in soup.recursiveChildGenerator():
-
+        if(tag.text == "img"):
+            for attr in list(tag.attrs):
+                if attr.startswith('src'):
+                    del tag.attrs[attr]
+        
         try:
             newAttrs = {}
             for item in tag.attrs.items():
                 itemList = list(item)
                 #if(item[0] in VALID_ATTRIBUTES):
-                if(item[0] not in REMOVE_ATTRIBUTES):
+             #   if(item[0] not in REMOVE_ATTRIBUTES):
+                if(item[0] in VALID_ATTRIBUTES):
                     if(item[0] == 'src' or item[0] == 'action'):
                         if(str(item[1])[:4] != 'http' and str(item[1])[:3] != 'www' and str(item[1])[:1] != "/"):
                             itemList[1] = "./" + item[1]
@@ -402,15 +407,15 @@ async def background_task(from_, body):
             multiPartMessages[from_].append(body)
         except KeyError:
             multiPartMessages[from_] = [body]
-        #print("MPM:")
-        #print(multiPartMessages)
+        print("MPM:")
+        print(multiPartMessages)
 
         reassembled = [None] * len(multiPartMessages[from_])
         
         for str in multiPartMessages[from_]:
             if(body[:2] == "àà"):
-                #print(multiPartMessages[from_])
-                #print(len(multiPartMessages[from_]))
+                print(multiPartMessages[from_])
+                print(len(multiPartMessages[from_]))
                 textOrder = len(multiPartMessages[from_])-1
             else:
                 textOrder = r2v(str[:2], SYMBOL_TABLE)
@@ -422,24 +427,24 @@ async def background_task(from_, body):
 
         stringReassembled = (''.join(reassembled))
 
-       # print("STRING REASSEMBLED:")
-       # print(stringReassembled)
+        print("STRING REASSEMBLED:")
+        print(stringReassembled)
 
         nums = []
 
         for chr in stringReassembled:
             nums.append(SYMBOL_TABLE.index(chr))
 
-       # print("NUUUUUMMMMS:")
-       # print(nums)
+        print("NUUUUUMMMMS:")
+        print(nums)
 
         garbageData = 0
         p = len(nums) - 1
         while nums[p] == 114:
             garbageData += 1
             p -= 1
-       # print("NUM GARBAGE DATA:")
-       # print(garbageData)
+        print("NUM GARBAGE DATA:")
+        print(garbageData)
         decode = smsDecoder()
 
         urlWithGarbage = decode.encode_raw(input_data=nums)
