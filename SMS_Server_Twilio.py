@@ -186,7 +186,7 @@ async def sendMessages(url):
     ##### USE THE BELOW FOR TESTING
     with open('soupHtml.html', 'w', encoding='utf-8') as f:
         f.write(final.decode())
-    print(final.decode())
+    #print(final.decode())
     #print('\n')
     #print(data)
     #print('\n')
@@ -207,7 +207,7 @@ async def sendMessages(url):
     encodedsms = encoder.encode_raw(compressed)
     #print(encodedsms)
 
-    print(encodedsms)
+    #print(encodedsms)
     #print('\n')
     #print(encodedsms)
     #print('\n')
@@ -229,7 +229,7 @@ async def sendMessages(url):
     i = 0
     for chunk in smsQueue:
         string = ''.join(v2r(i, SYMBOL_TABLE))
-        print(string)
+        #print(string)
         chunk = string + chunk
         #print(chunk)
         #print("\n")
@@ -402,15 +402,15 @@ async def background_task(from_, body):
             multiPartMessages[from_].append(body)
         except KeyError:
             multiPartMessages[from_] = [body]
-        print("MPM:")
-        print(multiPartMessages)
+        #print("MPM:")
+        #print(multiPartMessages)
 
         reassembled = [None] * len(multiPartMessages[from_])
         
         for str in multiPartMessages[from_]:
             if(body[:2] == "àà"):
-                print(multiPartMessages[from_])
-                print(len(multiPartMessages[from_]))
+                #print(multiPartMessages[from_])
+                #print(len(multiPartMessages[from_]))
                 textOrder = len(multiPartMessages[from_])-1
             else:
                 textOrder = r2v(str[:2], SYMBOL_TABLE)
@@ -422,24 +422,24 @@ async def background_task(from_, body):
 
         stringReassembled = (''.join(reassembled))
 
-        print("STRING REASSEMBLED:")
-        print(stringReassembled)
+       # print("STRING REASSEMBLED:")
+       # print(stringReassembled)
 
         nums = []
 
         for chr in stringReassembled:
             nums.append(SYMBOL_TABLE.index(chr))
 
-        print("NUUUUUMMMMS:")
-        print(nums)
+       # print("NUUUUUMMMMS:")
+       # print(nums)
 
         garbageData = 0
         p = len(nums) - 1
         while nums[p] == 114:
             garbageData += 1
             p -= 1
-        print("NUM GARBAGE DATA:")
-        print(garbageData)
+       # print("NUM GARBAGE DATA:")
+       # print(garbageData)
         decode = smsDecoder()
 
         urlWithGarbage = decode.encode_raw(input_data=nums)
