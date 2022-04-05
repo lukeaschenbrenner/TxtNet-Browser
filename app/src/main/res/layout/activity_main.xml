@@ -117,71 +117,76 @@
                 android:id="@+id/url_go_progressbar_relLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="5dp"
-                >
+                android:layout_marginRight="5dp">
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.7" />
                 <RelativeLayout
                     android:id="@+id/edittextborder"
 
-                    android:layout_width="270dp"
+                    android:layout_width="0dp"
                     android:layout_height="45dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toLeftOf="@+id/go_button"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    >
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline3"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                <EditText
-                    android:id="@+id/web_address_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:background="@drawable/round_edit_text"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="Enter URL"
-                    android:importantForAutofill="noExcludeDescendants"
-                    android:inputType="textWebEditText"
-                    android:textColor="@color/black"
-                    android:textColorHint="@color/secondary_hint"
-                    android:textSize="20sp">
+                    <EditText
+                        android:id="@+id/web_address_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/round_edit_text"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:hint="Enter URL"
+                        android:importantForAutofill="noExcludeDescendants"
+                        android:inputType="textWebEditText"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/secondary_hint"
+                        android:textSize="20sp">
 
-                </EditText>
-                  </RelativeLayout>
+                    </EditText>
+                </RelativeLayout>
+
                 <ImageButton
                     android:id="@+id/go_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
-                    android:text="@string/go_button"
                     android:contentDescription="GO"
                     android:src="@drawable/ic_baseline_search_24"
+                    android:text="@string/go_button"
 
                     app:layout_constraintBottom_toTopOf="@+id/progress_bar"
                     app:layout_constraintEnd_toStartOf="@id/settingsbutton"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/edittextborder"
+                    app:layout_constraintStart_toEndOf="@id/guideline3"
                     app:layout_constraintTop_toTopOf="@+id/edittextborder" />
 
 
                 <ImageButton
                     android:id="@+id/settingsbutton"
-                    app:layout_constraintStart_toEndOf="@+id/go_button"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/edittextborder"
-                    app:layout_constraintBottom_toBottomOf="@+id/go_button"
-                    android:background="?android:selectableItemBackground"
-
-                    android:layout_height="wrap_content"
                     android:layout_width="30dp"
-                    android:src="@drawable/ic_overflow_holo_dark"
+                    android:layout_height="wrap_content"
+                    android:background="?android:selectableItemBackground"
                     android:contentDescription="@string/descr_overflow_button"
                     android:onClick="showPopup"
 
-                     />
+                    android:src="@drawable/ic_overflow_holo_dark"
+                    app:layout_constraintBottom_toBottomOf="@+id/go_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/go_button"
+                    app:layout_constraintTop_toTopOf="@+id/edittextborder"
+
+                    />
 
                 <ProgressBar
                     android:id="@+id/progress_bar"
@@ -191,6 +196,8 @@
                     android:layout_marginTop="2dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/edittextborder" />
+
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.appcompat.widget.Toolbar>
 
@@ -220,6 +227,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.9" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

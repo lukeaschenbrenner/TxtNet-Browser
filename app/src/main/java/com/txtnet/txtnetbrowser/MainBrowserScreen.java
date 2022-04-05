@@ -1,5 +1,6 @@
 package com.txtnet.txtnetbrowser;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
@@ -86,71 +87,72 @@ public class MainBrowserScreen extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        preferences = getSharedPreferences( getPackageName() + "_preferences", MODE_PRIVATE);
-        mContext = this;
-
-        boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
-        if (!isAccessed) {
-            SharedPreferences.Editor edit = preferences.edit();
-            edit.putBoolean(getString(R.string.is_accessed), Boolean.TRUE);
-            edit.apply();
-            showIntroActivity();
-            return;
-        }
+        if (savedInstanceState == null) {
 
 
+            preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
+            mContext = this;
 
-        setContentView(R.layout.activity_main);
+            boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
+            if (!isAccessed) {
+                SharedPreferences.Editor edit = preferences.edit();
+                edit.putBoolean(getString(R.string.is_accessed), Boolean.TRUE);
+                edit.apply();
+                showIntroActivity();
+                return;
+            }
 
-        boolean missingPerms = false;
-        //above is the intro screen, but below we manually check for permissions just in case
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            for (int i = 0; i < permissions.length; i++) {
-                if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
-                    ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_ID[i]);
+
+            setContentView(R.layout.activity_main);
+
+            boolean missingPerms = false;
+            //above is the intro screen, but below we manually check for permissions just in case
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                for (int i = 0; i < permissions.length; i++) {
+                    if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
+                        ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_ID[i]);
+                    }
+                }
+                for (int i = 0; i < permissions.length; i++) {
+                    if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
+                        missingPerms = true;
+                    }
                 }
             }
-            for (int i = 0; i < permissions.length; i++) {
-                if (checkSelfPermission(permissions[i]) == PackageManager.PERMISSION_DENIED) {
-                    missingPerms = true;
-                }
+
+
+            PackageManager pm = getPackageManager();
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) || missingPerms) { //disable the app
+                Intent intent = new Intent(this, UnsupportedDeviceActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                Log.d("APP", "UNSUPPORTED");
+                startActivity(intent);
+                ActivityCompat.finishAffinity(MainBrowserScreen.this);
             }
-        }
-
-
-        PackageManager pm = getPackageManager();
-        if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) || missingPerms) { //disable the app
-            Intent intent = new Intent(this, UnsupportedDeviceActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            Log.d("APP", "UNSUPPORTED");
-            startActivity(intent);
-            ActivityCompat.finishAffinity(MainBrowserScreen.this);
-        }
 
 
 
-        Uri startIntentData = getIntent().getData();
 
-
-        urlEditText = (EditText) findViewById(R.id.web_address_edit_text);
-        back = (ImageButton) findViewById(R.id.back_arrow);
-        forward = (ImageButton) findViewById(R.id.forward_arrow);
-        stop = (ImageButton) findViewById(R.id.stop);
-        goButton = (ImageButton) findViewById(R.id.go_button);
-        refresh = (ImageButton) findViewById(R.id.refresh);
-        homeButton = (ImageButton) findViewById(R.id.home);
-        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        progressBar.setVisibility(View.GONE);
-        webView = findViewById(R.id.web_view);
+            urlEditText = (EditText) findViewById(R.id.web_address_edit_text);
+            back = (ImageButton) findViewById(R.id.back_arrow);
+            forward = (ImageButton) findViewById(R.id.forward_arrow);
+            stop = (ImageButton) findViewById(R.id.stop);
+            goButton = (ImageButton) findViewById(R.id.go_button);
+            refresh = (ImageButton) findViewById(R.id.refresh);
+            homeButton = (ImageButton) findViewById(R.id.home);
+            progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+            progressBar.setVisibility(View.GONE);
+            webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
-        swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
+            swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
 
-
+        }
 
         TextMessageHandler handler = TextMessageHandler.getInstance();
+        Uri startIntentData = getIntent().getData();
 
         if (startIntentData != null) {
             String intentUrl = startIntentData.toString();
@@ -159,7 +161,8 @@ public class MainBrowserScreen extends AppCompatActivity {
                 //load intentUrl website
             } else {
                 //the app was opened before
-                webView.restoreState(savedInstanceState);
+                //webView.restoreState(savedInstanceState);
+                //doing this with a separate method (below), not needed here
             }
         } else {
             startWebView(null);
@@ -509,5 +512,19 @@ public class MainBrowserScreen extends AppCompatActivity {
                 Toast.makeText(this, "Link copied!", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        webView.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        webView.restoreState(savedInstanceState);
     }
 }
