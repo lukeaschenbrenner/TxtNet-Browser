@@ -19,6 +19,7 @@ import json
 import math
 import time
 from requests_html import HTMLSession, AsyncHTMLSession
+from pyppeteer import launch
 import asyncio
 import json
 import signal
@@ -214,6 +215,9 @@ async def sendMessages(url):
     #print(int.from_bytes(compressed, byteorder='little'))
     encoder = smsEncoder()
     encodedsms = encoder.encode_raw(compressed)
+
+   # encodedSMSb64 = base64.b64encode(compressed).decode("UTF-8")
+
     #print(encodedsms)
 
     #print(encodedsms)
@@ -249,6 +253,35 @@ async def sendMessages(url):
     howManyTextsToExpect = math.ceil(len(smsQueue))
 
     print(howManyTextsToExpect, "Process starting...")
+    #print("If base64 was used:")
+
+
+  #  BNUM_CHARS_PER_SMS = 158 # Leave 2 characters for positional number (115 chars * 115 = 13225 total text (arbitrary limit))
+    #smsQueue = [output[i:i+NUM_CHARS_PER_SMS] for i in range(0, len(output), NUM_CHARS_PER_SMS)]
+"""
+    BsmsQueue =  []
+    for Bi in range(0, len(encodedSMSb64), BNUM_CHARS_PER_SMS):
+        BsmsQueue.append(encodedSMSb64[Bi:Bi+BNUM_CHARS_PER_SMS])
+
+    Bi = 0
+    for Bchunk in BsmsQueue:
+        Bstring = ''.join(v2r(Bi, SYMBOL_TABLE))
+        #print(string)
+        Bchunk = Bstring + Bchunk
+        #print(chunk)
+        #print("\n")
+        #print("{}{}".format(i,chunk))
+        BsmsQueue[Bi] = Bchunk
+        Bi += 1
+
+    BhowManyTextsToExpect = math.ceil(len(BsmsQueue))
+    print(BhowManyTextsToExpect)
+
+"""
+
+
+
+
 
    # print("number of texts with indicators: {}".format(math.ceil(len(smsQueue))))
 
@@ -579,15 +612,17 @@ def decodeIt(smsQueue):
     #print(nums)
     #print(out2)
 
-def handler(signum, frame):
+async def handler(signum, frame):
     res = input("Ctrl-c was pressed. Do you really want to exit? y/n ")
     if res == 'y':
         #HTMLSession.close()
+        await launch.killChrome()
         exit(1)
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, handler)
-    #print(environ.get("TWILIO_API_KEY"))
+    #print(asyncio.run((sendMessages("https://en.wikipedia.org/wiki/Bumblebee"))))
+
     app.run(host='0.0.0.0', debug=True)
     
     #smsQueue = ["@@@ìßGAV&ä¿qùOK3uÜ9ì.Æh9+ÉùßñFT_änåNÆ=+éO%3¤ÜèH*¿MÖG9O£7Ag=p_4=òOüIå&l/#WdG-OR*üh¤l9pc\"Ñ*8\'Vk¿E%C\'#øòåèreM2m4ñTnt>¡ß*k_ù=\'j>yÄC:U¥èHf-=1L#\nyÜÜÉzL;¿dòbCLSäM¤.VN\n", "@£@8-S$G2ì:c\"(xMn!ICZRtÜ4:UüjjrWe\"suUÄXEàààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà"]
