@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="30dp"
         android:paddingEnd="30dp"
-        android:text="Sorry, but your device is not compatible with blocking numbers automatically."
+        android:text="Sorry, but your device is not compatible with blocking numbers automatically. (Requires Android 7+)"
         android:textAlignment="center"
         android:textSize="25sp"
         app:layout_constraintEnd_toEndOf="parent"

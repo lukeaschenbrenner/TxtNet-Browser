@@ -121,10 +121,10 @@ public class TextMessageHandler {
             ArrayList<PendingIntent> sentPendingIntents = new ArrayList<PendingIntent>();
             ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<PendingIntent>();
             PendingIntent sentPI = PendingIntent.getBroadcast(MainBrowserScreen.mContext, 0,
-                    new Intent(MainBrowserScreen.mContext, SmsSentReceiver.class), 0);
+                    new Intent(MainBrowserScreen.mContext, SmsSentReceiver.class), PendingIntent.FLAG_IMMUTABLE);
 
             PendingIntent deliveredPI = PendingIntent.getBroadcast(MainBrowserScreen.mContext, 0,
-                    new Intent(MainBrowserScreen.mContext, SmsDeliveredReceiver.class), 0);
+                    new Intent(MainBrowserScreen.mContext, SmsDeliveredReceiver.class), PendingIntent.FLAG_IMMUTABLE);
             try {
                 SmsManager sms = SmsManager.getDefault();
                 for (int i = 0; i < smsQueue.size(); i++) {

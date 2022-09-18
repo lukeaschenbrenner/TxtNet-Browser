@@ -278,7 +278,7 @@ public class MainBrowserScreen extends AppCompatActivity {
                     public void run() {
                         TextMessageHandler.getInstance().sendTextMessage("unstop");
                     }
-                }, 1000);
+                }, 5000);
 
             }
         });
@@ -472,6 +472,8 @@ public class MainBrowserScreen extends AppCompatActivity {
         } else {
             progressBar.setVisibility(ProgressBar.VISIBLE);
         }
+
+        webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
     }
 
     public void loadUrl(String urlToLoad){

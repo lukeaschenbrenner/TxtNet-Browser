@@ -23,6 +23,10 @@ from pyppeteer import launch
 import asyncio
 import json
 import signal
+import logging
+from logging import getLogger
+from quart.logging import default_handler
+
 
 from twilio.twiml.messaging_response import MessagingResponse, Message
 from twilio.rest import Client
@@ -137,8 +141,11 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
 }
 async def get_website(url):
+    #session = AsyncHTMLSession(browser_args=["--proxy-server=socks5://127.0.0.1:1080", "--host-resolver-rules=\"MAP * ~NOTFOUND , EXCLUDE 127.0.0.1\""])    
+    #for no proxy: 
     session = AsyncHTMLSession()
     session.headers = headers
+    #session.proxies = {'http': 'http://127.0.0.1:1080'}
     r = await session.request("GET", url, params=None, headers=headers)
     await r.html.arender()
     await session.close()
@@ -178,10 +185,15 @@ async def sendMessages(url):
             url = "http://frogfind.com/?q=" + url
         elif not containsProto:
             url = "http://" + url
+
+        log.info("Loaded url: %s", url)
+
         r = await get_website(url)
         data = r.html.html
     except Exception:
-        data = "<p>Error: The page you have requested is not available.</p>"
+        data = "<p>Error: The page you have requested is not available. The page may be too large.</p>"
+        
+        log.error("URL EXCEPTION: %s", url)
         
     #await r.html.arender()
     #.encode(encoding='UTF-8')
@@ -252,9 +264,13 @@ async def sendMessages(url):
 
     howManyTextsToExpect = math.ceil(len(smsQueue))
 
+    if(howManyTextsToExpect > 100):
+        log.error("Website data too long for url: %s", url)
+        return sendMessages("http://www.$$$.error-on-purpose.com") #website is too large to send
+
     print(howManyTextsToExpect, "Process starting...")
     #print("If base64 was used:")
-
+    return smsQueue
 
   #  BNUM_CHARS_PER_SMS = 158 # Leave 2 characters for positional number (115 chars * 115 = 13225 total text (arbitrary limit))
     #smsQueue = [output[i:i+NUM_CHARS_PER_SMS] for i in range(0, len(output), NUM_CHARS_PER_SMS)]
@@ -285,7 +301,7 @@ async def sendMessages(url):
 
    # print("number of texts with indicators: {}".format(math.ceil(len(smsQueue))))
 
-    return smsQueue
+    
 
 
 
@@ -509,6 +525,8 @@ async def background_task(from_, body):
     except ImproperUsageError:
         if not multiPartMessages[from_] == None and len(multiPartMessages[from_]) > 1500:
             multiPartMessages[from_] = [] ##cache is getting too long
+
+            log.error("Request is too long: %s", body)
         return
         #this just means we don't have the full message yet! need to implement splitting up message every 160 chars and v2r/r2v in android
 
@@ -530,6 +548,7 @@ async def inbound_sms():
                 print("CANCELLING POPPED TASK!")
                 poppedTask.cancel()
         except Exception:
+            log.error("Task not present or not able to cancel. Number: %s", from_)
             print("Task not present or not able to cancel.")
             pass
         
@@ -539,6 +558,8 @@ async def inbound_sms():
                     print(client.queues(sid).delete())
                     print("Deletion of message successful.")
                 except Exception:
+                    log.error("Can't cancel message for sid: %s", sid)
+
                     print("can't cancel message! for sid ", sid)
                     pass
         except Exception:
@@ -548,6 +569,7 @@ async def inbound_sms():
             messagesForNumber.pop(from_)
         except KeyError:
             print("ERROR: Could not remove messages queue from memory for {}".format(from_))
+            log.error("Cannot remove messages queue from memory for %s", from_)
             pass
 
     else:
@@ -620,6 +642,18 @@ async def handler(signum, frame):
         exit(1)
 
 if __name__ == '__main__':
+    #logging.basicConfig(level=logging.INFO, filename='requests.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+    getLogger('quart.app').removeHandler(default_handler)
+
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    formatter = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", 
+                            datefmt="%Y-%m-%d - %H:%M:%S")
+    fh = logging.FileHandler("requests.log", "a")
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(formatter)
+    log.addHandler(fh)
+
     signal.signal(signal.SIGINT, handler)
     #print(asyncio.run((sendMessages("https://en.wikipedia.org/wiki/Bumblebee"))))
 
@@ -627,4 +661,3 @@ if __name__ == '__main__':
     
     #smsQueue = ["@@@ìßGAV&ä¿qùOK3uÜ9ì.Æh9+ÉùßñFT_änåNÆ=+éO%3¤ÜèH*¿MÖG9O£7Ag=p_4=òOüIå&l/#WdG-OR*üh¤l9pc\"Ñ*8\'Vk¿E%C\'#øòåèreM2m4ñTnt>¡ß*k_ù=\'j>yÄC:U¥èHf-=1L#\nyÜÜÉzL;¿dòbCLSäM¤.VN\n", "@£@8-S$G2ì:c\"(xMn!ICZRtÜ4:UüjjrWe\"suUÄXEàààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà"]
     #print(decodeIt(smsQueue))
-
