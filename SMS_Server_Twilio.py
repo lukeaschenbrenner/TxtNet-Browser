@@ -1,7 +1,5 @@
 # Created by Luke Aschenbrenner on 9/17/21
-# Please see README.md for more information (that is, once I actually make one)
-# TODO: make readme file
-# Simple instructions: add API ID and key into environment variables, use ngrok url to redirect post requests from twilio's console to port 5000, and set twilio phone number to yours in the app!
+# Please see README.md for more information
 
 from os import environ
 import basest
@@ -41,9 +39,14 @@ gsm = ("@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&
        "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà")
 ext = ("````````````````````^```````````````````{}`````\\````````````[~]`"
        "|````````````````````````````````````€``````````````````````````")
+ALT_SYMBOL_TABLE = [
+"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_","Δ","Φ","Γ","Λ","Ω","Π","Ψ","Σ","Θ","Ξ","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","\u00A7","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
+] # This new symbol table adds 10 greek characters that originally would not send due to carrier issues parsing GSM-7 messages. Still being worked on with help from Twilio since 4/2022
+
 SYMBOL_TABLE = [
 "@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","\u00A7","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
 ]
+
 #Removed symbols for working prototype (US carriers are deleting greek symbols when using SMS API services):
 #"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_", "Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","`","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
 #    ]
@@ -109,7 +112,7 @@ class smsEncoder(Encoder):
    # these attributes are only required if using decode() and encode()
     input_symbol_table = [chr(c) for c in range(115)]
     output_symbol_table = [
-"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","Δ","_","Φ","Γ","Λ","Ω","Π","Ψ","Σ","Θ","Ξ","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","`","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
+"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","\u00A7","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
     ]
     padding_symbol = '='
 
@@ -127,9 +130,9 @@ class smsDecoder(Encoder):
     output_ratio = 134
    
    # these attributes are only required if using decode() and encode()
-    input_symbol_table = [chr(c) for c in range(125)]
+    input_symbol_table = [chr(c) for c in range(115)]
     output_symbol_table = [
-"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","Δ","_","Φ","Γ","Λ","Ω","Π","Ψ","Σ","Θ","Ξ","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","`","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
+"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","\u00A7","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
     ]
     padding_symbol = '='
 
@@ -206,8 +209,8 @@ async def sendMessages(url):
     ######## TESTING BELOW ###########
 
     ##### USE THE BELOW FOR TESTING
-    with open('soupHtml.html', 'w', encoding='utf-8') as f:
-        f.write(final.decode())
+  #  with open('soupHtml.html', 'w', encoding='utf-8') as f:
+  #      f.write(final.decode())
     #print(final.decode())
     #print('\n')
     #print(data)

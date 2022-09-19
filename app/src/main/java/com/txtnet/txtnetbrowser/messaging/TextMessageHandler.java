@@ -67,6 +67,14 @@ public class TextMessageHandler {
             return;
         }
        // PendingIntent sentIntent = null, deliveryIntent = null;
+        else if(body.contains("Website Cancel") || body.contains("STOP") || body.contains("unstop")) {
+
+            SmsManager sms = SmsManager.getDefault();
+
+            sms.sendTextMessage(PHONE_NUMBER, null, body, null, null);
+
+            return;
+        }
 
 
         SmsManager smsManager = SmsManager.getDefault();
