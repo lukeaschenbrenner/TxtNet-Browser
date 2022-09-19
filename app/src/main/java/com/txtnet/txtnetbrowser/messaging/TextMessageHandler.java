@@ -41,7 +41,7 @@ public class TextMessageHandler {
     public static String PHONE_NUMBER = null;
     private TextMessageHandler(){
         PHONE_NUMBER = MainBrowserScreen.preferences.getString(MainBrowserScreen.mContext.getResources().getString(R.string.phone_number), MainBrowserScreen.mContext.getResources().getString(R.string.default_phone));
-    }
+    } //TODO: above line of code is buggy, results in some app crashes. fix!
     public static TextMessageHandler getInstance(){
         if(single_instance == null){
             single_instance = new TextMessageHandler();
