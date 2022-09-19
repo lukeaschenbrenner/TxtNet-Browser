@@ -269,6 +269,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
                 webView.stopLoading();
                 TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
                 TextMessageHandler.getInstance().sendTextMessage("STOP");

@@ -32,7 +32,9 @@ public class MyWebViewClient extends WebViewClient {
 //            url = view.getUrl() + url;
         TextMessage.url = url;
 
-        handler.sendTextMessage(url);
+        if(!(url.equals("about:blank") || url.equals("about:blank#blocked"))){
+            handler.sendTextMessage(url);
+        }
 
         s.UpdateMyText(url);
 

@@ -1,7 +1,5 @@
-# Created by Luke Aschenbrenner on 9/17/21
-# Please see README.md for more information (that is, once I actually make one)
-# TODO: make readme file
-# Simple instructions: add API ID and key into environment variables, use ngrok url to redirect post requests from twilio's console to port 5000, and set twilio phone number to yours in the app!
+# This is the Python Server script associated with the TxtNet Browser project.
+# Please see README.md for more information on how to get started or how to run your own server.
 
 from os import environ
 import basest
@@ -27,7 +25,7 @@ import logging
 from logging import getLogger
 from quart.logging import default_handler
 
-
+#This implementation uses Twilio, but you could use an alternative service or possibly selfhost an API on your own phone number.
 from twilio.twiml.messaging_response import MessagingResponse, Message
 from twilio.rest import Client
 import urllib
@@ -156,7 +154,7 @@ async def get_website(url):
     await session.close()
     return r
 
-async def sendMessages(url):
+async def sendMessages(url, exceptionFlag = False):
 
     #TODO: REQUESTS library auto parse url eg. www
    # r = requests.get(url, headers=headers)
@@ -181,10 +179,9 @@ async def sendMessages(url):
                 break
         #print(containsTld)
         #print(containsProto)
-            if(url == "http://frogfind.com/?q=about:blank#blocked"):
-                raise Exception("Website form unsuccessful.");
-
-        if(not containsTld):
+        if(url == "about:blank#blocked" or url == "about:blank"):
+            raise Exception()
+        elif(not containsTld):
             url = "http://frogfind.com/?q=" + url
         elif not containsProto:
             url = "http://" + url
@@ -196,7 +193,8 @@ async def sendMessages(url):
     except Exception:
         data = "<p>Error: The page you have requested is not available. The page may be too large.</p>"
         
-        log.error("URL EXCEPTION: %s", url)
+        if(exceptionFlag):
+            log.error("URL EXCEPTION: %s", url)
         
     #await r.html.arender()
     #.encode(encoding='UTF-8')
@@ -269,7 +267,7 @@ async def sendMessages(url):
 
     if(howManyTextsToExpect > 100):
         log.error("Website data too long for url: %s", url)
-        return sendMessages("http://www.$$$.error-on-purpose.com") #website is too large to send
+        return sendMessages(url, True) #website is too large to send, send an error instead
 
     print(howManyTextsToExpect, "Process starting...")
     #print("If base64 was used:")
@@ -579,9 +577,11 @@ async def inbound_sms():
         app.add_background_task(background_task, from_, body)    
     #await sendWebsite(from_, body)
     #return 'Message Received'
-    return 'OK'
+    response = MessagingResponse().to_xml()
+    return response
 
 
+#This function not used for regular server purposes, only for testing.
 def decodeIt(smsQueue):
     #out2 = output.encode(encoding='UTF-8')
     #print(out2)
