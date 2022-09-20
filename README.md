@@ -36,6 +36,8 @@ The current source code is pointed at my own server, using a Twilio API with cre
 
 Bugs:
 - It is almost impossible to stop a page load when it begins. The server migitates this by adding a restriction so that no more than 100 SMS messages are sent, but the client also tries to inform the server to stop sending messages when the button is pressed. Do not spam this button!
+- Many carriers are unnecessarily rate limiting incoming text messages, so a page may look as though it "stalled" while loading on large pages. As of now the only way to fix this is to wait!
+- The main search provider (FrogFind) appears to be having its own bugs with certain queries returning 0 results. Please use Google instead for those!
 - In Android 12 (or possibly a new version of Google Messages?), there is a new and "improved" messages blocking feature. This results in no SMS messages getting through when a number is blocked, which makes the blocking feature of TxtNet Browser break the app! Instead of blocking messages, to get around this "feature", you can silent message notifications from the server phone number.
 <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/>
 
