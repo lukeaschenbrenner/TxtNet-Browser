@@ -7,4 +7,25 @@
     <string name="is_accessed">isAccessed</string>
     <string name="phone_number">phoneNumber</string>
     <string name="default_phone">+18884842216</string>
+    <string name="optin_confirmation_terms">
+        Twilio (the provider of the server phone number that I am using) requires a Terms of Service in order to keep my toll-free server number functional.
+\n\n
+        TL;DR: I don\'t want your data and the app won\'t text you unless you specifically make a web request! I have no reason to pester you with texts outside of giving you the website you requested in the first place. I\'m not looking to make a profit or give away/sell user data by offering this service.
+\n\n
+        By accepting these Terms of Service, you (the user) agree that by pressing the \"Enter\" key or the \"Search\" icon in this app, the app will send a varying amount of text messages to the specified phone number listed under the \"Change Server Phone Number\" option (referred to hereafter as \"the phone number\")
+        Users opt-in to receiving SMS messages to SMS messages when you agree to these terms by pressing \"I Accept\". SMS exchanges are initiated by the user, and run for the duration of the request, which is typically under one minute. No further SMS messages are initiated by the phone number until another opt-in request is made by the user (noted by the submission of a request). An opt-out button is also made available inside the app which sends the text \“STOP\” to the toll-free number on your behalf.
+\n\n
+        The number of text messages sent to the phone number is a direct result of the length of URL you request, shown in the URL/search bar. For example, URLs over 200 characters long are likely to be split into 2 text messages.
+        By initiating contact in sending (or allowing TxtNet Browser to send) an SMS to the phone number, you agree to receive between 1 (one) and 100 (one hundred) SMS messages from the phone number in the form of an encoded web site. Each request to the phone number constitutes one \'conversation\' which includes your implied consent and proof of consent.
+        You may reply STOP at any time to stop receiving SMS messages from the phone number. The \"stop\" icon of TxtNet browser automatically sends this text on your behalf.
+\n\n
+        The phone number hoster is not liable for any effects of receiving SMS messages from the phone number, such as an increase in storage utilization or app crashes.
+        The phone number hoster will keep a \"timestamp of when the customer completed a sign-up flow.\" as required by Twilio\'s Toll-Free number messaging policy, available at https://www.twilio.com/legal/messaging-policy
+\n\n
+        You agree that user data (such as phone number and request URL) will not be stored by the phone number hoster unless an error occurs, in which case it may be logged for 30 days to assist in resolving bugs.
+
+    </string>
+    <string name="accept">I Accept</string>
+    <string name="cancel">Close App</string>
+    <string name="is_tosaccepted">isTosAccepted</string>
 </resources>

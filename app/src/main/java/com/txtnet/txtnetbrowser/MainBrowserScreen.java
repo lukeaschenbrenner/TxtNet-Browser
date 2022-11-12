@@ -135,6 +135,12 @@ public class MainBrowserScreen extends AppCompatActivity {
 
 
 
+            boolean isTosAccepted = preferences.getBoolean(getString(R.string.is_tosaccepted), false);
+            if(!isTosAccepted){
+                TermsConditionsDialogFragment dialogFragment = new TermsConditionsDialogFragment();
+                dialogFragment.show(getSupportFragmentManager(), "terms");
+            }
+
 
             urlEditText = (EditText) findViewById(R.id.web_address_edit_text);
             back = (ImageButton) findViewById(R.id.back_arrow);
