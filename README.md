@@ -4,6 +4,8 @@
 
 TextNet Browser is an Android app that allows anyone around the world to browse the web without a mobile data connection! It uses SMS as a medium of transmitting HTTP requests to a server where a pre-parsed HTML response is compressed using Google's [Brotli](https://github.com/google/brotli) compression algorithm and encoded using a custom Base-114 encoding format (based on [Basest](https://github.com/saxbophone/basest-python)).  
 
+## As of November 14th, 2022, the core functionality of TxtNet Browser is temporarily broken when using the default server phone number. This is because the Twilio credits purchased for this project have run out. I am actively working to resolve this issue by allocating more credits and beginning active development on a peer-to-peer model, which will not rely on Twilio credits. Stay tuned in the coming weeks for large improvements!
+
 > ⚠️**Please note**: All web traffic  should be considered unencrypted, as all requests are made over SMS and received in plaintext by the server!
 
 ## Download
