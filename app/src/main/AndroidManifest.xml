@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.txtnet.txtnetbrowser">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Remove old internet perms soon, maybe have access phone state?-->
     <!--uses-permission android:name="android.permission.INTERNET" />
@@ -15,6 +14,7 @@
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_MMS" />
+
 
 
     <application

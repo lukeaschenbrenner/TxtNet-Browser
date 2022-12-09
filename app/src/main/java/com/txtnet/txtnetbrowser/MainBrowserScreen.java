@@ -1,5 +1,8 @@
 package com.txtnet.txtnetbrowser;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +24,7 @@ import android.os.Bundle;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
@@ -45,16 +49,25 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aayushatharva.brotli4j.Brotli4jLoader;
 import com.github.appintro.AppIntroFragment;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
+import com.txtnet.txtnetbrowser.util.AndroidLogFormatter;
+import com.txtnet.txtnetbrowser.util.EncodeFile;
 import com.txtnet.txtnetbrowser.webview.MyWebView;
 import com.txtnet.txtnetbrowser.webview.MyWebViewClient;
 
 import android.content.ClipboardManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainBrowserScreen extends AppCompatActivity {
     /**
@@ -75,6 +88,8 @@ public class MainBrowserScreen extends AppCompatActivity {
     private static final int[] PERMISSIONS_REQUEST_ID = {1, 2, 3, 4, 5};
     public static SharedPreferences preferences;
     public static Context mContext;
+    public static Logger rootLogger;
+    ActivityResultLauncher<String> mGetContent;
 
     void showIntroActivity() {
         Intent intent = new Intent(this, AppIntroActivity.class);
@@ -134,9 +149,8 @@ public class MainBrowserScreen extends AppCompatActivity {
             }
 
 
-
             boolean isTosAccepted = preferences.getBoolean(getString(R.string.is_tosaccepted), false);
-            if(!isTosAccepted){
+            if (!isTosAccepted) {
                 TermsConditionsDialogFragment dialogFragment = new TermsConditionsDialogFragment();
                 dialogFragment.show(getSupportFragmentManager(), "terms");
             }
@@ -155,6 +169,12 @@ public class MainBrowserScreen extends AppCompatActivity {
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
 
+            mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
+                @Override
+                public void onActivityResult(Uri uri) {
+                    // Handle the returned Uri
+                }
+            });
         }
 
         TextMessageHandler handler = TextMessageHandler.getInstance();
@@ -174,7 +194,49 @@ public class MainBrowserScreen extends AppCompatActivity {
             startWebView(null);
             //TODO: Replace with markdown welcome page
         }
+
+
+        if (BuildConfig.DEBUG) {
+
+            File destinationFolder = this.getExternalFilesDir(null);
+
+
+
+            rootLogger = java.util.logging.LogManager.getLogManager().getLogger("");
+            File file = new File(destinationFolder, "logFile.txt");
+            FileHandler handlerLog = null;
+            try {
+                handlerLog = new FileHandler(file.getAbsolutePath(), 5 * 1024 * 1024/*5Mb*/, 1, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            handlerLog.setFormatter(new AndroidLogFormatter(file.getAbsolutePath(),""));
+
+            rootLogger.addHandler(handlerLog);
+            rootLogger.setUseParentHandlers(false);
+
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    paramThrowable.printStackTrace(pw);
+                    try {
+                        sw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    rootLogger.log(Level.SEVERE, sw.toString());
+                    System.exit(2);
+                }
+            });
+
+
+        }
+
     }
+
 
     public void startWebView(String url) {
 
@@ -266,9 +328,17 @@ public class MainBrowserScreen extends AppCompatActivity {
         forward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (webView.canGoForward()) {
-                    webView.goForward();
-                }
+                //if (webView.canGoForward()) {
+                //    webView.goForward();
+                //}
+
+
+               // mGetContent.launch("encoded.br");
+                Brotli4jLoader.ensureAvailability();
+                //UseBrotliTest test = new UseBrotliTest();
+
+                //test.createFile();
+
             }
         });
 
@@ -316,6 +386,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         }
 
     }
+
 
     public void UpdateMyText(String mystr) {
         urlEditText.setText(mystr);
