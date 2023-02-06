@@ -11,5 +11,9 @@
         android:icon="@drawable/home_icon"
         android:title="Change Server Phone Number"
         />
+    <item android:id="@+id/TxtNetServer"
+        android:icon="@drawable/home_icon"
+        android:title="TxtNet Server"
+        />
 
 </menu>

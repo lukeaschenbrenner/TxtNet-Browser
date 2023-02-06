@@ -40,6 +40,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.core:core-ktx:+'
+    implementation files('libs/brotli4droid-release.aar')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
@@ -66,7 +67,7 @@ dependencies {
 
     //implementation 'org.apache.commons:commons-compress:1.22'
 
-    implementation("com.aayushatharva.brotli4j:brotli4j:1.8.0")
+    //implementation("com.aayushatharva.brotli4j:brotli4j:1.8.0")
     //runtimeOnly(
     //        "com.aayushatharva.brotli4j:native-linux-aarch64:1.8.0"
     //)

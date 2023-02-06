@@ -25,7 +25,7 @@ public class MyWebViewClient extends WebViewClient {
             return false;
         }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance();
+        TextMessageHandler handler = TextMessageHandler.getInstance(s);
 
         //                webView.clearFormData(); does this do something useful?
 //        if(!url.contains("http") && !url.contains("//") && !url.contains("STOP") && !url.contains("unstop") && !url.contains("Website Cancel"))

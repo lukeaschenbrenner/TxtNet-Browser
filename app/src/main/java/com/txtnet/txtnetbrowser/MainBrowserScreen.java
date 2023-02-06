@@ -49,12 +49,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aayushatharva.brotli4j.Brotli4jLoader;
+//import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.txtnet.brotli4droid.Brotli4jLoader;
 import com.github.appintro.AppIntroFragment;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
+import com.txtnet.txtnetbrowser.server.ServerDisplay;
 import com.txtnet.txtnetbrowser.util.AndroidLogFormatter;
-import com.txtnet.txtnetbrowser.util.EncodeFile;
+//import com.txtnet.txtnetbrowser.util.EncodeFile;
 import com.txtnet.txtnetbrowser.webview.MyWebView;
 import com.txtnet.txtnetbrowser.webview.MyWebViewClient;
 
@@ -169,15 +171,15 @@ public class MainBrowserScreen extends AppCompatActivity {
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
 
-            mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
-                @Override
-                public void onActivityResult(Uri uri) {
-                    // Handle the returned Uri
-                }
-            });
+      //      mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
+      //          @Override
+      //          public void onActivityResult(Uri uri) {
+      //              // Handle the returned Uri
+      //          }
+      //      });
         }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance();
+        TextMessageHandler handler = TextMessageHandler.getInstance(this);
         Uri startIntentData = getIntent().getData();
 
         if (startIntentData != null) {
@@ -347,13 +349,13 @@ public class MainBrowserScreen extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
                 webView.stopLoading();
-                TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
-                TextMessageHandler.getInstance().sendTextMessage("STOP");
+                TextMessageHandler.getInstance(v.getContext()).sendTextMessage("Website Cancel");
+                TextMessageHandler.getInstance(v.getContext()).sendTextMessage("STOP");
                 final Handler handler = new Handler(Looper.getMainLooper());
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        TextMessageHandler.getInstance().sendTextMessage("unstop");
+                        TextMessageHandler.getInstance(v.getContext()).sendTextMessage("unstop");
                     }
                 }, 5000);
 
@@ -379,7 +381,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         });
 
         if (url != null) {
-            TextMessageHandler.getInstance().sendTextMessage(url);
+            TextMessageHandler.getInstance(this).sendTextMessage(url);
             urlEditText.setText(url);
         }else{
             webView.loadUrl("file:///android_asset/welcome.md.html");
@@ -497,6 +499,10 @@ public class MainBrowserScreen extends AppCompatActivity {
 
                         builder.show();
                         return true;
+                    case R.id.TxtNetServer:
+                        Intent intent2 = new Intent(v.getContext(), ServerDisplay.class);
+                        startActivity(intent2);
+                        return true;
                     default:
                         return false;
                 }
@@ -567,7 +573,7 @@ public class MainBrowserScreen extends AppCompatActivity {
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
                 TextMessage.url = urlToLoad;
-                TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
+                TextMessageHandler.getInstance(this).sendTextMessage(urlToLoad);
 
             }
 
