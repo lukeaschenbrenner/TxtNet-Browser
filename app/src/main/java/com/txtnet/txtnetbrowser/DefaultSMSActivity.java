@@ -70,12 +70,12 @@ public class DefaultSMSActivity extends AppCompatActivity {
 
                             Toast.makeText(getApplicationContext(), "Please select \"TxtNet SMS\" as the default SMS app!", Toast.LENGTH_LONG).show();
 
-                            startActivityForResult(roleRequestIntent, 2);
+                            startActivityForResult(roleRequestIntent, 2); // we use the onActivityResult callback to find out if the user actually did this!
 
 
                         }
                     }
-                }else if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+                }else {
                     if(!isDefaultSmsApp(v.getContext())){
 
                         getPackageManager()

@@ -11,11 +11,13 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
 import android.provider.Telephony;
@@ -25,6 +27,7 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.provider.BlockedNumberContract;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -42,12 +45,23 @@ import com.txtnet.txtnetbrowser.SMSActivities;
 import com.txtnet.txtnetbrowser.UnsupportedBlockActivity;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
 
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class ServerDisplay extends AppCompatActivity {
+import rikka.shizuku.Shizuku;
+import rikka.shizuku.ShizukuBinderWrapper;
+import rikka.shizuku.ShizukuProvider;
+import rikka.shizuku.SystemServiceHelper;
+
+public class ServerDisplay extends AppCompatActivity implements Shizuku.OnRequestPermissionResultListener {
+    public static final int OPEN_NEW_ACTIVITY = 123456;
     public final static String CHANNEL_ID = "SERVER_NOTIFS";
+    private final static int SHIZUKU_CODE = 31;
 
 
     @Override
@@ -56,9 +70,20 @@ public class ServerDisplay extends AppCompatActivity {
                                      Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        String currentDefault = Telephony.Sms.getDefaultSmsPackage(this);
-        boolean isDefault = getPackageName().equals(currentDefault);
-        Toast.makeText(getApplicationContext(), "TxtNet SMS is " + (isDefault ? "now the default SMS app." : "still not the default SMS app."), Toast.LENGTH_SHORT).show();
+        if (requestCode == OPEN_NEW_ACTIVITY) {
+            // request setting secure perm
+            Settings.Global.putInt(getContentResolver(), "SMS_OUTGOING_CHECK_MAX_COUNT".toLowerCase(), 20);
+
+            try {
+                Log.e("Setting", String.valueOf(Settings.Global.getInt(getContentResolver(), "SMS_OUTGOING_CHECK_MAX_COUNT".toLowerCase())));
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+      //  String currentDefault = Telephony.Sms.getDefaultSmsPackage(this);
+      //  boolean isDefault = getPackageName().equals(currentDefault);
+      //  Toast.makeText(getApplicationContext(), "TxtNet SMS is " + (isDefault ? "now the default SMS app." : "still not the default SMS app."), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -71,22 +96,80 @@ public class ServerDisplay extends AppCompatActivity {
                 ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
-            createNotificationChannel(this);
         }
+
+        createNotificationChannel(this);
 
         Button button1 = (Button) findViewById(R.id.startServiceButton);
         Button button2 = (Button) findViewById(R.id.endServiceButton);
 
         button1.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("PrivateApi")
             public void onClick(View v) {
 
-                Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+                // It turns out that SMS_OUTGOING_CHECK_MAX_COUNT and SMS_OUTGOING_CHECK_MAX_INTERVAL_MS are no longer secure settings as of 9/14/2012 ( https://cs.android.com/android/_/android/platform/frameworks/opt/telephony/+/3ca3a570c0ad836dc42378e4359dbf28c6ef71db:src/java/com/android/internal/telephony/SmsUsageMonitor.java;l=258;bpv=1;bpt=0;drc=4658a1a8c23111d5cc89feb040ce547a7b65dfb0;dlc=c38bb60d867c5d61d90b7179a9ed2b2d1848124f )
+                //     still, just the WRITE_SETTINGS permission DOES NOT allow us to write global settings.
+                if(ContextCompat.checkSelfPermission(v.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED)
+                {
+                    Log.e("perm", "No permission!");
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        boolean isGranted;
+                        if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
+                            isGranted = checkSelfPermission(ShizukuProvider.PERMISSION) == PackageManager.PERMISSION_GRANTED;
+                        } else {
+                            isGranted = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
+                        }
+                        if (!isGranted) {
+                            Log.e("rationale_shouldshow", String.valueOf(Shizuku.shouldShowRequestPermissionRationale()));
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    v.getContext().startForegroundService(intent);
-                }else{
-                    v.getContext().startService(intent);
+                            if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
+                                requestPermissions(new String[]{ShizukuProvider.PERMISSION}, SHIZUKU_CODE);
+                            } else {
+                                Shizuku.requestPermission(31);
+                            }
+                        }else{
+                            grantPermissions();
+                        }
+                    } else {
+                        Toast.makeText(v.getContext(), "TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)", Toast.LENGTH_LONG).show();
+                    }
                 }
+                else{ // permission granted, let's roll
+                    if(ContextCompat.checkSelfPermission(v.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
+                        grantPermissions();
+                    }
+
+                    Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        v.getContext().getApplicationContext().startForegroundService(intent);
+                    }else{
+                        v.getContext().getApplicationContext().startService(intent);
+                    }
+                }
+
+
+
+
+
+                /*
+                    From the android source code website, default values are:
+                        DEFAULT_SMS_CHECK_PERIOD = 60000;      // 1 minute
+                        DEFAULT_SMS_MAX_COUNT = 30; // default number of SMS sent in checking period without user permission.
+                 */
+
+
+
+                /*
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.System.canWrite(v.getContext())) {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                        intent.setData(Uri.parse("package:com.txtnet.txtnetbrowser"));
+                        startActivityForResult(intent, OPEN_NEW_ACTIVITY);
+                    }
+                }
+                */
+
 
 
             }
@@ -94,11 +177,12 @@ public class ServerDisplay extends AppCompatActivity {
         });
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                v.getContext().stopService(new Intent(v.getContext(), TxtNetServerService.class));
+                v.getContext().getApplicationContext().stopService(new Intent(v.getContext(), TxtNetServerService.class));
             }
         });
 
     }
+
     public static void createNotificationChannel(Context c) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -124,6 +208,87 @@ public class ServerDisplay extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (int i = 0; i < permissions.length; i++) {
+            String permission = permissions[i];
+            int result = grantResults[i];
+
+            if (permission.equals(ShizukuProvider.PERMISSION)) {
+                onRequestPermissionResult(requestCode, result);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionResult(int requestCode, int grantResult) {
+        boolean isGranted = grantResult == PackageManager.PERMISSION_GRANTED;
+        if(!isGranted)
+            Toast.makeText(this, "Shizuku permissions denied!", Toast.LENGTH_LONG).show();
+        else {
+            Toast.makeText(this, "Shizuku permissions granted!", Toast.LENGTH_LONG).show();
+            grantPermissions();
+        }
+    }
+
+    @SuppressLint("PrivateApi")
+    public void grantPermissions(){
+        Class<?> iPmClass = null;
+        Class<?> iPmStub = null;
+        try {
+            iPmClass = Class.forName("android.content.pm.IPackageManager");
+            iPmStub = Class.forName("android.content.pm.IPackageManager$Stub");
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Method asInterfaceMethod = null;
+        Method grantRuntimePermissionMethod = null;
+        try {
+            assert iPmStub != null;
+            asInterfaceMethod = iPmStub.getMethod("asInterface", IBinder.class);
+
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+        Object iPmInstance = null;
+        try {
+           // assert grantRuntimePermissionMethod != null;
+          //  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+          //      grantRuntimePermissionMethod = HiddenApiBypass.getDeclaredMethod(iPmClass, "grantRuntimePermission", String.class, String.class, int.class);
+          //  }else{
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    HiddenApiBypass.addHiddenApiExemptions("");
+                }
+                grantRuntimePermissionMethod = iPmClass.getMethod("grantRuntimePermission", String.class, String.class, int.class);
+
+            assert asInterfaceMethod != null;
+            iPmInstance = asInterfaceMethod.invoke(null, new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
+
+           // }
+           // grantRuntimePermissionMethod.invoke(iPmInstance, "com.txtnet.txtnetbrowser", Manifest.permission.WRITE_SETTINGS, 0);
+            grantRuntimePermissionMethod.invoke(iPmInstance, "com.txtnet.txtnetbrowser", Manifest.permission.WRITE_SECURE_SETTINGS, 0);
 
 
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+
+        }
+        try{
+            // We now can send no more than
+            boolean put1 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_max_count", 1_000_000); // 1 million SMS messages every
+            boolean put2 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_interval_ms", 30000); // 30 seconds
+            // Something tells me we won't hit this limit.
+            Toast.makeText(this, "Done. You may need to reboot. This should only be done once.", Toast.LENGTH_LONG).show();
+            Log.e("put1", String.valueOf(put1));
+            Log.e("put2", String.valueOf(put2));
+
+        }catch(SecurityException se){
+            Toast.makeText(this, "Permission WRITE_SECURE_SETTINGS not obtained!", Toast.LENGTH_LONG).show();
+
+        }
+    }
 }
+

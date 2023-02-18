@@ -39,14 +39,21 @@ import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
 public class TextMessageHandler {
     private static TextMessageHandler single_instance = null;
     public static String PHONE_NUMBER = null;
-    private TextMessageHandler(Context c){
-        PHONE_NUMBER = MainBrowserScreen.preferences.getString(c.getResources().getString(R.string.phone_number), c.getResources().getString(R.string.default_phone));
+    private TextMessageHandler(String phoneNumber){
+        PHONE_NUMBER = phoneNumber;
     } //TODO: above line of code is buggy, results in some app crashes. fix!
-    public static TextMessageHandler getInstance(Context c){
+    public static TextMessageHandler getInstance(String phoneNumber){
         if(single_instance == null){
-            single_instance = new TextMessageHandler(c);
+            single_instance = new TextMessageHandler(phoneNumber);
         }
         return single_instance;
+    }
+    public static TextMessageHandler getInstance(){
+        if(single_instance == null){
+            return null;
+        }else{
+            return single_instance;
+        }
     }
 
     private final String TAG = "TextMessageHandler";

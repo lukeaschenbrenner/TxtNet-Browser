@@ -24,6 +24,9 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.txtnet.txtnetbrowser.R;
 
+import rikka.shizuku.Shizuku;
+
+
 public class TxtNetServerService extends Service {
     private NotificationManagerCompat notificationManager;
     private final int NOTIFICATION_ID = 43;
@@ -59,7 +62,7 @@ public class TxtNetServerService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("TxtNet Server Is Running").setContentText("Press this notification to open the server management screen.")
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.ic_launcher_monochrome);
+                .setSmallIcon(R.drawable.ic_notification_monochrome);
         builder.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE).setVisibility(NotificationCompat.VISIBILITY_SECRET);
 
         notificationManager = NotificationManagerCompat.from(context.getApplicationContext());
@@ -70,6 +73,9 @@ public class TxtNetServerService extends Service {
         Message msg = serviceHandler.obtainMessage();
         msg.arg1 = startId;
         serviceHandler.sendMessage(msg);
+
+        Toast.makeText(this, "We're done here!", Toast.LENGTH_SHORT).show();
+
 
         /*
                 if (intent != null) {
@@ -140,6 +146,7 @@ public class TxtNetServerService extends Service {
                 Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
 
+        Shizuku.pingBinder();
 
         // Get the HandlerThread's Looper and use it for our Handler
         serviceLooper = thread.getLooper();
@@ -161,6 +168,7 @@ public class TxtNetServerService extends Service {
                 // Restore interrupt status.
                 Thread.currentThread().interrupt();
             }
+
             // Stop the service using the startId, so that we don't stop
             // the service in the middle of handling another job
             stopSelf(msg.arg1);

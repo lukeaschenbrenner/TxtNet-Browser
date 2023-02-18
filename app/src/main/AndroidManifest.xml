@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-sdk
+        tools:overrideLibrary="rikka.shizuku.provider, rikka.shizuku.api, rikka.shizuku.shared, rikka.shizuku.aidl"/>
 
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -18,6 +23,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" /> <!-- Even though it says only system apps can get this permission, that isn't true. -->
 
 
 
@@ -54,17 +61,24 @@
 
         <activity android:name="com.txtnet.txtnetbrowser.AppIntroActivity"
             android:label="App Introduction"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/AppTheme.NoActionBar"
         />
         <activity android:name="com.txtnet.txtnetbrowser.UnsupportedDeviceActivity"
             android:label="Unsupported Device"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/AppTheme.NoActionBar"
             />
         <activity android:name="com.txtnet.txtnetbrowser.server.ServerDisplay"
             android:label="Server Display"
             android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
+            />
+
+
+        <activity android:name="com.txtnet.txtnetbrowser.UnsupportedBlockActivity"
+            android:label="Unsupported Block Operation"
+            android:exported="false"
             android:theme="@style/AppTheme.NoActionBar"
             />
 
@@ -150,7 +164,13 @@
         <service android:name="com.txtnet.txtnetbrowser.server.TxtNetServerService" android:description="@string/server_description"
             android:icon="@drawable/ic_launcher_monochrome" android:label="TxtNet Server" android:permission="android.permission.INTERNET"/>
 
-
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 
 </manifest>

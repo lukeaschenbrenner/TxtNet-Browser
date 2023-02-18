@@ -71,5 +71,10 @@ dependencies {
     //runtimeOnly(
     //        "com.aayushatharva.brotli4j:native-linux-aarch64:1.8.0"
     //)
+    def shizuku_version = '13.1.0'
+    implementation "dev.rikka.shizuku:api:$shizuku_version"
+    implementation "dev.rikka.shizuku:provider:$shizuku_version"
+    implementation "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
+
 
 }

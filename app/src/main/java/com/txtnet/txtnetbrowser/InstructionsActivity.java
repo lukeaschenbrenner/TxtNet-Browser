@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+import android.widget.Button;
+
+import androidx.activity.result.contract.ActivityResultContracts;
 
 //This class is not used, but keeping some methods for future reference
 public class InstructionsActivity extends Activity {
@@ -17,6 +20,7 @@ public class InstructionsActivity extends Activity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
     }
 

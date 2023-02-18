@@ -71,6 +71,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 public class MainBrowserScreen extends AppCompatActivity {
     /**
      * TODO: Add custom CSS files for commonly visited websites to save on space
@@ -78,6 +79,8 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: allow submitting basic web forms as post request
      * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
      * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
+     *
+     * TODO 2/17/23: Test extracting web content from a webview, even one that doesn't have an active view?
      */
 
     public static MyWebView webView;
@@ -107,11 +110,12 @@ public class MainBrowserScreen extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (savedInstanceState == null) {
 
+ //       if (savedInstanceState == null) { TODO: See if we should replace this null check?
 
             preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
             mContext = this;
+
 
             boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
             if (!isAccessed) {
@@ -177,9 +181,9 @@ public class MainBrowserScreen extends AppCompatActivity {
       //              // Handle the returned Uri
       //          }
       //      });
-        }
+      //  }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance(this);
+        TextMessageHandler handler = TextMessageHandler.getInstance(preferences.getString(getResources().getString(R.string.phone_number), getResources().getString(R.string.default_phone)));
         Uri startIntentData = getIntent().getData();
 
         if (startIntentData != null) {
@@ -337,7 +341,9 @@ public class MainBrowserScreen extends AppCompatActivity {
 
                // mGetContent.launch("encoded.br");
                 Brotli4jLoader.ensureAvailability();
+                Log.e("hereswhatsup", "e: " + String.valueOf(Brotli4jLoader.isAvailable()));
                 //UseBrotliTest test = new UseBrotliTest();
+           //     Log.e("shizukualive", String.valueOf(Shizuku.pingBinder())); // "Normal apps should use listeners rather calling this method everytime"
 
                 //test.createFile();
 
@@ -349,13 +355,14 @@ public class MainBrowserScreen extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
                 webView.stopLoading();
-                TextMessageHandler.getInstance(v.getContext()).sendTextMessage("Website Cancel");
-                TextMessageHandler.getInstance(v.getContext()).sendTextMessage("STOP");
+                assert TextMessageHandler.getInstance() != null;
+                TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
+                TextMessageHandler.getInstance().sendTextMessage("STOP");
                 final Handler handler = new Handler(Looper.getMainLooper());
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        TextMessageHandler.getInstance(v.getContext()).sendTextMessage("unstop");
+                        TextMessageHandler.getInstance().sendTextMessage("unstop");
                     }
                 }, 5000);
 
@@ -381,7 +388,8 @@ public class MainBrowserScreen extends AppCompatActivity {
         });
 
         if (url != null) {
-            TextMessageHandler.getInstance(this).sendTextMessage(url);
+            assert TextMessageHandler.getInstance() != null;
+            TextMessageHandler.getInstance().sendTextMessage(url);
             urlEditText.setText(url);
         }else{
             webView.loadUrl("file:///android_asset/welcome.md.html");
@@ -573,8 +581,8 @@ public class MainBrowserScreen extends AppCompatActivity {
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
                 TextMessage.url = urlToLoad;
-                TextMessageHandler.getInstance(this).sendTextMessage(urlToLoad);
-
+                assert TextMessageHandler.getInstance() != null;
+                TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
             }
 
         } catch (Exception e) {
