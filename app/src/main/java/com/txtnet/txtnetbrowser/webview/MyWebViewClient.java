@@ -4,6 +4,7 @@ import android.net.http.SslError;
 import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -40,6 +41,9 @@ public class MyWebViewClient extends WebViewClient {
 
         return true;
     }
+
+
+
 //    @Override
 //    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
 //        handler.proceed(); // Ignore SSL certificate errors
