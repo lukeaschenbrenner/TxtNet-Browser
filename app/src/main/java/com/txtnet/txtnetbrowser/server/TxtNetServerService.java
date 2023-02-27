@@ -3,6 +3,7 @@ package com.txtnet.txtnetbrowser.server;
 import static com.txtnet.txtnetbrowser.server.ServerDisplay.CHANNEL_ID;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,9 +25,13 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
@@ -36,15 +42,25 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.txtnet.txtnetbrowser.Constants;
 import com.txtnet.txtnetbrowser.R;
+
+import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.Jsoup;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import rikka.shizuku.Shizuku;
 
@@ -52,12 +68,16 @@ import rikka.shizuku.Shizuku;
 public class TxtNetServerService extends Service {
     private NotificationManagerCompat notificationManager;
     private final int NOTIFICATION_ID = 43;
+    private final int WEBVIEWS_LIMIT = 5;
+   // private final int WEBVIEWS_LIMIT = 2; // use for testing!
 
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
     private final String TAG = "SMSProcessService";
-
-    private WebView webview;
+    private WebView[] webViews;
+    public static final HashMap<WebView, AtomicBoolean> webViewBusynessMap = new HashMap<>();
+    //private WebView webview;
+    private WindowManager windowManager;
 
 
     @Nullable
@@ -73,7 +93,20 @@ public class TxtNetServerService extends Service {
         //Message msg = serviceHandler.obtainMessage();
         //msg.arg1 = startId;
         //serviceHandler.sendMessage(msg);
-
+        if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
+            //do nothing for now
+        }
+        else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
+            Log.i(TAG, "Received Stop Foreground Intent");
+            stopForeground(true);
+            if(serviceHandler != null){
+                serviceHandler.stopService();
+            }else{
+                stopSelfResult(startId);
+                    //TODO: Check if this else statement actually works(?)
+            }
+            return START_NOT_STICKY;
+        }
 
         PendingIntent pendingIntent = null;
         Context context = getApplicationContext();
@@ -95,18 +128,26 @@ public class TxtNetServerService extends Service {
         notificationManager.notify(NOTIFICATION_ID, builder.build());
         startForeground(NOTIFICATION_ID, notif);
 
+
+
+        //////////////// TEST CASES /////////////////////////
         // make a separate thing for receiving incoming messages for responses, but we're going to manually send a message here
-        Message msg = serviceHandler.obtainMessage();
-        msg.arg1 = startId;
-        msg.obj = intent; // I don't know what any of this does!
-        Bundle bundle = new Bundle(1);
-      //  bundle.putString("linkToVisit", intent.getStringExtra("linkToVisit"));
-        bundle.putString("linkToVisit", "https://google.com");
-        Log.e("GETSTRING", bundle.getString("linkToVisit"));
-        msg.setData(bundle);
+        String[] links = {"https://google.com", "https://bing.com", "http://example.com", "http://frogfind.com", "http://lite.cnn.com"};
+        ArrayList<Message> msgs = new ArrayList<>();
+        for(int i = 0; i < 5; i++){
+            Message msg = serviceHandler.obtainMessage();
+            msg.arg1 = startId;
+            msg.obj = intent; // I don't know what any of this does!
+            Bundle bundle = new Bundle(1);
+            //  bundle.putString("linkToVisit", intent.getStringExtra("linkToVisit"));
+            bundle.putString("linkToVisit", links[i]);
+            msg.setData(bundle);
+            msgs.add(msg);
 
-        serviceHandler.sendMessage(msg);
-
+        }
+        for(int i = 0; i < 5; i++){
+            serviceHandler.sendMessage(msgs.get(i));
+        }
         Toast.makeText(this, "We're done here!", Toast.LENGTH_SHORT).show();
 
 
@@ -136,7 +177,7 @@ public class TxtNetServerService extends Service {
 
         // Tell the user we stopped.
        // Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "We're done here!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "OnDestroy called!", Toast.LENGTH_SHORT).show();
     }
 
     //@Override
@@ -176,8 +217,10 @@ public class TxtNetServerService extends Service {
     } */
 
     public void onCreate(){
+        Log.e("ONCREATE", "ONCREATE CALLED TXTNETSERVERSERVICE!");
         super.onCreate();
 
+        webViews = new WebView[WEBVIEWS_LIMIT];
 
         HandlerThread thread = new HandlerThread("SMSProcessThread",
                 Process.THREAD_PRIORITY_MORE_FAVORABLE);
@@ -189,8 +232,10 @@ public class TxtNetServerService extends Service {
         serviceLooper = thread.getLooper();
         serviceHandler = new ServiceHandler(serviceLooper);
 
+
+
         // Adapted from https://stackoverflow.com/questions/18865035/android-using-webview-outside-an-activity-context
-        WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, Build.VERSION.SDK_INT < Build.VERSION_CODES.O ?
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY :
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, PixelFormat.TRANSLUCENT);
@@ -203,8 +248,39 @@ public class TxtNetServerService extends Service {
         LinearLayout view = new LinearLayout(this);
         view.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
 
-        webview = new WebView(this);
-        //TODO: Add requesting permission to overlay
+        CookieManager cookieManager = CookieManager.getInstance();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            cookieManager.removeAllCookies(null); // could make a looper callback to handle a message indicating how many cookies were removed, but we don't care
+        }else{
+            cookieManager.removeAllCookie();
+        }
+        cookieManager.setAcceptCookie(false);
+
+        //
+        //////// Populate webviews
+        //
+        for(int i = 0; i < WEBVIEWS_LIMIT; i++) {
+            webViews[i] = new WebView(this);
+            webViewBusynessMap.put(webViews[i], new AtomicBoolean(false));
+            webViews[i].setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+            view.addView(webViews[i]);
+
+            webViews[i].measure(412, 824); // Reference viewport size of Pixel 4 XL
+            webViews[i].layout(0, 0, 412, 824);
+            WebSettings ws = webViews[i].getSettings();
+            ws.setJavaScriptEnabled(true);
+            ws.setAllowFileAccessFromFileURLs(true);
+            ws.setSaveFormData(false);
+
+            int finalI = i;
+            webViews[i].post(new Runnable() { // careful, this runs on main thread!
+                @Override
+                public void run() {
+                    webViews[finalI].setWebViewClient(new ServerWebViewClient());
+                }
+            });
+            //TODO: Add requesting permission to overlay
+
 /*
 In activity:
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -215,33 +291,32 @@ In activity:
         }
  */
 
-        webview.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        view.addView(webview);
+
 //        wv.loadUrl("http://google.com");
+        }
+        windowManager.addView(view,params);
+                //    surfaceView.getHolder().addCallback(this);
 
-        windowManager.addView(view, params);
-        //    surfaceView.getHolder().addCallback(this);
 
-    }
+        }
 
+    static final Object SEMAPHORE = new Object();
     private final class ServiceHandler extends Handler {
-
-        private String downloadedHTML = "";
         public ServiceHandler(Looper looper) {
             super(looper);
         }
         // Much code adapted from https://github.com/JonasCz/save-for-offline/blob/master/app/src/main/java/jonas/tool/saveForOffline/ScreenshotService.java
         private int currentStartId;
-        private boolean exportCompleted = false;
+
 
         @SuppressLint("SetJavaScriptEnabled")
         @Override
         public void handleMessage(Message msg) {
-            Message msgCopy = Message.obtain(msg);
+            Message msgCopy = Message.obtain(msg); // the message data is cleared when the servicehandler is quit, which happens before the runnable is executed
+            Log.e("msgs", "Message recieved: " + msgCopy.getData().getString("linkToVisit"));
             currentStartId = msg.arg1;
             //webview = new WebView(TxtNetServerService.this);
-            webview.setDrawingCacheEnabled(true);
-            webview.measure(412, 824); // Reference viewport size of Pixel 4 XL
+        //    webview.setDrawingCacheEnabled(true); // If we want to export the website as a bitmap, we should disable hardware-accelerated rendering using this line
 
 
    //         final Intent intent = (Intent) msg.obj; // ??????
@@ -250,53 +325,53 @@ In activity:
 
 
 
-
-            webview.post(new Runnable() {
-                @Override
-                public void run() {
-                    webview.setWebViewClient(new WebViewClient() {
-
-                        @Override
-                        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                            Log.w(TAG, "Recieved error from WebView, description: " + description + ", Failing url: " + failingUrl);
-                            //without this method, your app may crash...
-                        }
-
-                        @Override
-                        public void onPageFinished(WebView view, String url) {
-                            Log.i(TAG, "Page finished, getting thumbnail");
-                            //    takeWebviewScreenshot(intent.getStringExtra(Database.THUMBNAIL));
-                            exportHTMLFromWebsite("NULL");
-                        }
-
-                        @Override
-                        public WebResourceResponse shouldInterceptRequest (final WebView view, String url) {
-                            if (url.contains(".css")) {
-                                return super.shouldInterceptRequest(view, url);
-                                //return null;
-                                //makes all CSS requests return null instead of the actual css
-                            } else {
-                                return super.shouldInterceptRequest(view, url);
-                            }
-                        }
-
-                    });
-
           //          Handler handle = new Handler(Looper.getMainLooper());
           //          handle.post(new Runnable() {
           //              public void run() {
-                            webview.layout(0, 0, 412, 824);
-                            webview.getSettings().setJavaScriptEnabled(true);
-                            webview.getSettings().setAllowFileAccessFromFileURLs(true);
+
 
          //               }
          //           });
 
-                    // TODO: Should have all the webview creation during object creation, we don't need to create a new webview for every request
-                    Log.e("HELLO", "Stuff:" + msgCopy.getData().getString("linkToVisit"));
-                    webview.loadUrl(msgCopy.getData().getString("linkToVisit"));
+//                    Log.e("URL from message:", "Stuff:" + msgCopy.getData().getString("linkToVisit"));
+
+            //check if webviews are busy
+            boolean shouldExit = false;
+            while(!shouldExit) {
+                Log.e("TAG", "Not exiting loop, waiting for webview!");
+                synchronized (SEMAPHORE) {
+                    for (int i = 0; i < webViews.length; i++) {
+                        WebView view = webViews[i];
+                        if (!(Objects.requireNonNull(webViewBusynessMap.get(view)).get())){ // webview is not busy, load the url
+                            Objects.requireNonNull(webViewBusynessMap.get(view)).set(true);
+                            int finalI = i;
+                            view.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.e("newbusy", "newwebviewbusyness: " + Objects.requireNonNull(webViewBusynessMap.get(view)).get());
+                                    System.out.println("Webview " + view.toString() + " is running. " + finalI);
+                                    view.loadUrl(msgCopy.getData().getString("linkToVisit"));
+                                }
+                            });
+                            shouldExit = true;
+                            break;
+                        }
+                    }
+                    if(!shouldExit){
+                        try {
+                            Log.e("WAIT", "SEMAPHORE WAIT TIME");
+                            SEMAPHORE.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                 }
-            });
+
+            }
+
+
+
 
 
 //            try {
@@ -311,56 +386,7 @@ In activity:
             //stopSelf(msg.arg1);
         }
 
-        private void exportHTMLFromWebsite(String exportLocation){
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(1000);  //allow webview to render, otherwise output may be blank or partial
-                    } catch (InterruptedException e) {
-                        //should never happen
-                        Log.e(TAG, "InterruptedException when downloading website ", e);
-                    }
-               //     saveBitmapToFile(webview.getDrawingCache(), new File(outputFileLocation));
-                    //                            "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();",
-                    ValueCallback<String> vc = new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String html) {
-                            if ("null".equals(html)) {
-                                downloadedHTML = "<html>Error: No Content</html>";
-                            } else {
-                                String unescaped = html.substring(1, html.length() - 1)  // remove wrapping quotes
-                                        .replace("\\\\", "\\")        // unescape \\ -> \
-                                        .replace("\\\"", "\"");       // unescape \" -> "
-                                downloadedHTML = unescaped;
-                            }
-                            Log.i("Finished HTML", downloadedHTML);
-                        }
-                    };
-                    webview.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            webview.evaluateJavascript(
-                                    "(function() { " +
-                                            "var node = document.doctype;\n" +
-                                            "var html = \"<!DOCTYPE \"\n" +
-                                            "         + node.name\n" +
-                                            "         + (node.publicId ? ' PUBLIC \"' + node.publicId + '\"' : '')\n" +
-                                            "         + (!node.publicId && node.systemId ? ' SYSTEM' : '') \n" +
-                                            "         + (node.systemId ? ' \"' + node.systemId + '\"' : '')\n" +
-                                            "         + '>';" +
-                                            "return (html+document.documentElement.outerHTML); })();",
-                                    vc);
-                        }
-                    });
 
-//                    webview.post();
-                    exportCompleted = true;
-                    stopService();
-
-                }
-            }).start();
-        }
   //      @JavascriptInterface
   //      public void onData(){
   //          webview.post(new Runnable() {
@@ -391,13 +417,84 @@ In activity:
         }
 
         private void stopService() {
-            if (exportCompleted) {
+            Log.i(TAG, "stopService called");
+            if (serviceHandler.hasMessages(currentStartId)) {
+                serviceHandler.removeMessages(currentStartId);
+            }
                 Log.i(TAG, "Service stopped, with startId " + currentStartId + " completed");
-                stopSelf(currentStartId);
+            for(int i = 0; i < webViews.length; i++){
+                windowManager.removeView(webViews[i].getRootView());
+
+            }
+                webViews = new WebView[0];
+                stopSelf(); // we don't care if the startID matches
             }
         }
 
-    }
+    public static void exportHTMLFromWebsite(WebView webview, String exportLocation){
+        final String[] downloadedHTML = {""}; // must be one element final array because using inner class
+        String TAG = "ServerWebViewClient";
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(1000);  //allow webview to render, otherwise output may be blank or partial
+                } catch (InterruptedException e) {
+                    //should never happen
+                    Log.e(TAG, "InterruptedException when downloading website ", e);
+                }
+                //     saveBitmapToFile(webview.getDrawingCache(), new File(outputFileLocation));
+                //                            "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();",
 
+                ValueCallback<String> vc = new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String html) {
+                        if ("null".equals(html)) {
+                            downloadedHTML[0] = "<html>Error: No Content</html>";
+                        } else {
+                            Log.i("Early HTML", html);
+
+                            String unescaped = html.substring(1, html.length() - 1)  // remove wrapping quotes
+                                    .replace("\\\\", "\\")        // unescape \\ -> \
+                                    .replace("\\\"", "\"");       // unescape \" -> "
+                            downloadedHTML[0] = unescaped;
+                        }
+                        Log.i("Finished HTML", Jsoup.parse(StringEscapeUtils.unescapeJava(downloadedHTML[0])).html().substring(0, 10));
+                        try{
+                            Objects.requireNonNull(TxtNetServerService.webViewBusynessMap.get(webview)).set(false);
+                            synchronized (SEMAPHORE){
+                                SEMAPHORE.notifyAll();
+                            }
+                        }catch(NullPointerException npe){
+                            npe.printStackTrace();
+                        }
+                        //  stopService();
+                    }
+                };
+                webview.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        webview.evaluateJavascript(
+                                "(function() { " +
+                                        "var node = document.doctype;\n" +
+                                        "var html = \"<!DOCTYPE \"\n" +
+                                        "         + node.name\n" +
+                                        "         + (node.publicId ? ' PUBLIC \"' + node.publicId + '\"' : '')\n" +
+                                        "         + (!node.publicId && node.systemId ? ' SYSTEM' : '') \n" +
+                                        "         + (node.systemId ? ' \"' + node.systemId + '\"' : '')\n" +
+                                        "         + '>';" +
+                                        "return (html+document.documentElement.outerHTML); })();",
+                                vc);
+                    }
+                });
+
+                //                    webview.post();
+                //         stopService();
+
+            }
+        }).start();
+    }
 }
+
+
 

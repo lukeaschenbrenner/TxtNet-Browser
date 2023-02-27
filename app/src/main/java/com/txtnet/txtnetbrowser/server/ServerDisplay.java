@@ -40,6 +40,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
 
+import com.txtnet.txtnetbrowser.Constants;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.SMSActivities;
 import com.txtnet.txtnetbrowser.UnsupportedBlockActivity;
@@ -140,6 +141,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                     }
 
                     Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+                    intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         v.getContext().getApplicationContext().startForegroundService(intent);
@@ -177,7 +179,9 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         });
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                v.getContext().getApplicationContext().stopService(new Intent(v.getContext(), TxtNetServerService.class));
+                Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+                intent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
+                v.getContext().getApplicationContext().startService(intent);
             }
         });
 
