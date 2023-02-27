@@ -132,6 +132,11 @@ public class DefaultSMSActivity extends AppCompatActivity {
                             String numberFilter = "address='"+ pnE164 + "'";
                             Cursor cursor = getContentResolver().query(Uri.parse("content://sms/"),
                                     null, numberFilter, null, null);
+                            //TODO: Content provider URI is not constant across all Android devices. Should obtain cursor programatically instead.
+                            /*
+                                ContentResolver cr = context.getContentResolver();
+                                Cursor c = cr.query(Telephony.Sms.CONTENT_URI, null, null, null, null);
+                            */
 
                             if (!cursor.moveToFirst()) {
                                 break; // nothing more to delete
