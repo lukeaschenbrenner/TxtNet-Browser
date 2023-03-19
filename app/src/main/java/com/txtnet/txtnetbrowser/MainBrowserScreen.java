@@ -81,6 +81,7 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
      *
      * TODO 2/17/23: Replace loading screens from new WebView pages to an actual progress screen, to avoid spamming webview queue and allow for easy back button
+     * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
      */
 
     public static MyWebView webView;

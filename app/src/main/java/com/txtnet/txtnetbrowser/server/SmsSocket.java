@@ -1,6 +1,7 @@
 package com.txtnet.txtnetbrowser.server;
 
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
+import static com.txtnet.txtnetbrowser.basest.Base10Conversions.v2r;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.google.i18n.phonenumbers.Phonenumber;
+import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
@@ -29,9 +31,15 @@ import com.txtnet.txtnetbrowser.util.Index;
 import org.brotli.dec.BrotliInputStream;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -57,13 +65,62 @@ public class SmsSocket {
     }
 
     public void sendHTML(String html){
-        // send the texts here
+
+        ByteArrayOutputStream brotliOutput = new ByteArrayOutputStream();
+
+        BufferedWriter brotliWriter = null;
+        try {
+            brotliWriter = new BufferedWriter(new OutputStreamWriter(new BrotliOutputStream(brotliOutput)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        BufferedReader bufReader = new BufferedReader(new StringReader(html));
+        String line=null;
+        assert brotliWriter != null;
+
+        try{
+            while((line=bufReader.readLine()) != null) {
+                brotliWriter.write(line);
+            }
+            brotliWriter.flush();
+        }catch(IOException ioe){
+            ioe.printStackTrace();
+        }
+        Encode smsEncoder = new Encode();
+        byte[] htmlBytes = brotliOutput.toByteArray();
+        int[] htmlBytesAsIntArray = new int[htmlBytes.length];
+        for(int i = 0; i < htmlBytes.length; i++){
+            htmlBytesAsIntArray[i] = (int)(htmlBytes[i]);
+        }
+
+        int[] encodedSms = smsEncoder.encode_raw(256, 114, 143, 158, htmlBytesAsIntArray);
+        StringBuilder smsEncodedOutputBuilder = new StringBuilder();
+        for(int value : encodedSms){
+            smsEncodedOutputBuilder.append(SYMBOL_TABLE[value]);
+        }
+        String smsEncodedOutput = smsEncodedOutputBuilder.toString();
+        final int NUM_CHARS_PER_SMS = 158;
+        ArrayList<String> smsQueue = new ArrayList<>();
+        for(int i = 0; i < smsEncodedOutput.length(); i += NUM_CHARS_PER_SMS){
+            smsQueue.add(smsEncodedOutput.substring(i, i + NUM_CHARS_PER_SMS));
+        }
+        for(int j = 0; j < smsQueue.size(); j++){
+            String str = (v2r(new int[]{j}))[0] + smsQueue.get(j);
+            smsQueue.set(j, str);
+        }
+        int howManyTextsToExpect = (smsQueue.size());
+
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber.toString(), null, "xxx Process starting", null, null);
-        sleep(1000);
-        //TODO: Implement (SMS Server.py line 203)
-        while(shouldSend.get() && messages < length){
-            sendMessages();
+        sms.sendTextMessage(phoneNumber.toString(), null, howManyTextsToExpect + " Process starting", null, null);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        int currentMessageID = 0;
+        while(shouldSend.get() && currentMessageID < smsQueue.size()){
+            sms.sendTextMessage(phoneNumber.toString(), null, smsQueue.get(currentMessageID), null, null);
+            currentMessageID++;
         }
     }
     public void stopSend(){
