@@ -133,6 +133,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                         }
                     } else {
                         Toast.makeText(v.getContext(), "TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)", Toast.LENGTH_LONG).show();
+                        //TODO: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)
                     }
                 }
                 else{ // permission granted, let's roll

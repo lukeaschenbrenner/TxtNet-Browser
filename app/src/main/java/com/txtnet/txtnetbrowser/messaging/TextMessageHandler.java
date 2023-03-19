@@ -17,6 +17,10 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
+import com.txtnet.txtnetbrowser.BuildConfig;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
 
@@ -26,6 +30,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import android.provider.Telephony;
 import android.widget.Toast;
@@ -34,6 +39,8 @@ import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.basest.Encode;
 import com.txtnet.txtnetbrowser.receiver.SmsDeliveredReceiver;
 import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
+import com.txtnet.txtnetbrowser.server.SmsSocket;
+import com.txtnet.txtnetbrowser.server.TxtNetServerService;
 
 
 public class TextMessageHandler {
@@ -182,6 +189,7 @@ public class TextMessageHandler {
 
     }
 
+
     public static class SMSReceiver extends BroadcastReceiver {
         private static TextMessage txtmsg;
 
@@ -245,6 +253,47 @@ public class TextMessageHandler {
 
                     }
                     //    MainBrowserScreen.webView.loadDataWithBaseURL(null, body, "text/html", "utf-8", null);
+                }else if(TxtNetServerService.isRunning){
+                    try {
+                        Phonenumber.PhoneNumber incomingPhone = PhoneNumberUtil.getInstance().parse(origin,"");
+                        if(Message.startsWith("ping TxtNet")){
+                            int theirVersion = Integer.parseInt(Message.substring(Message.indexOf(" v")+1, (Message.substring(Message.indexOf(" v")+1).indexOf(" "))));
+                            String theirProtocol = (Message.substring(Message.lastIndexOf(" ")+1).replaceAll("[^a-zA-Z0-9]", ""));
+                            int myVersion = BuildConfig.VERSION_CODE;
+                            String body = "TxtNet Server v" + myVersion;
+                            if(theirVersion < myVersion){
+                                body += "\nYour version is outdated, latest is v" + myVersion;
+                            }
+                            SmsManager sms = SmsManager.getDefault();
+                            sms.sendTextMessage(PHONE_NUMBER, null, body, null, null);
+
+                        }else if(Message.contains("Website Cancel")){
+                            if(TxtNetServerService.smsDataBase.containsKey(incomingPhone)){
+                                Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).stopSend();
+
+                            }
+                        }
+                        else if(TxtNetServerService.smsDataBase.containsKey(incomingPhone)){
+                            //if the message ends up being a new request, we need to clear out the previous arraylist inside of the SmsSocket.
+                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message);
+                        }else{
+                            TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance));
+                            //TODO: Fix the above code to avoid static object reference
+                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message);
+                            //attempt to parse it as if it was a user request. if parsing fails, stop.
+                        }
+                        //REMEMBER TO SEND "Process starting xxx" BEFORE THE ACTUAL CONTENT
+                        //TODO: Eventually clear the smsDataBase every so often to avoid increases in memory usage
+
+
+
+                    } catch (NumberParseException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        boolean removeThisBool = true;
+                    }
+
                 }
 
             }

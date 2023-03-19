@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
 import android.util.Log;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
@@ -25,10 +28,16 @@ import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import rikka.shizuku.Shizuku;
+
 public class ServerWebViewClient extends WebViewClient {
         private long startTime;
         private static final String TAG = "ServerWebViewClient";
         private boolean isRedirected;
+        private TxtNetServerService service;
+        public ServerWebViewClient(TxtNetServerService service){
+            this.service = service;
+        }
 
   //  public ServerWebViewClient(WebView[] webViews) {
   //      super();
@@ -78,13 +87,21 @@ public class ServerWebViewClient extends WebViewClient {
                 public void run() {
                     if(timeout) { // give up after 15 seconds
                         view.stopLoading(); //TODO: does this method call also call onPageFinished?
-                        TxtNetServerService.exportHTMLFromWebsite(view, "NULL");
+                        service.exportHTMLFromWebsite(view);
                     }
                 }
             };
             timeout = true;
-            Handler myHandler = new Handler(Looper.myLooper());
-            myHandler.postDelayed(run, 15000);
+
+            HandlerThread thread = new HandlerThread("SmsProcessing",
+                    Process.THREAD_PRIORITY_DEFAULT);
+            thread.start();
+            Looper serviceLooper = thread.getLooper();
+            Handler smsExportHandler = new Handler(serviceLooper);
+            smsExportHandler.postDelayed(run, 15000);
+            // OR, Get the HandlerThread's Looper and use it for our Handler
+          //  Handler myHandler = new Handler(Looper.myLooper());
+          //  myHandler.postDelayed(run, 15000);
         }
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -96,7 +113,9 @@ public class ServerWebViewClient extends WebViewClient {
                 // if we overrode the URL load because of redirect, then onPageFinished will be called immediately so we need to check that progress is complete.
                 // if progress still isn't complete after 15 seconds, just move on.
                 //Do something you want when finished loading
-                TxtNetServerService.exportHTMLFromWebsite(view, "NULL");
+
+                Thread th = new Thread(() -> service.exportHTMLFromWebsite(view));
+                th.start();
             }
         }
 
@@ -157,6 +176,7 @@ public class ServerWebViewClient extends WebViewClient {
             }
         }
         */
+
 
 }
 

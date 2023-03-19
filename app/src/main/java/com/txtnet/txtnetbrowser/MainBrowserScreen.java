@@ -80,7 +80,7 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
      * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
      *
-     * TODO 2/17/23: Test extracting web content from a webview, even one that doesn't have an active view?
+     * TODO 2/17/23: Replace loading screens from new WebView pages to an actual progress screen, to avoid spamming webview queue and allow for easy back button
      */
 
     public static MyWebView webView;

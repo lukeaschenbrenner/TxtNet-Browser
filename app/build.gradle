@@ -78,6 +78,7 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'org.apache.commons:commons-text:1.10.0'
+    implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
 
 
 }

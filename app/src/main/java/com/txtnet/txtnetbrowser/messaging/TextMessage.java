@@ -34,6 +34,7 @@ public class TextMessage {
     private int howManyAdded = 0;
     public String[] textBuffer = null;
     public static String url;
+    //public boolean isUserRequest = false;
     Context context;
     /**
      * Constructs a new TextMessage object that allows for the use of a String buffer to represent a text message.
