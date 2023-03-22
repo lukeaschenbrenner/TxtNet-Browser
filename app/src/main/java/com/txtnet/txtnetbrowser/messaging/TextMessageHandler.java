@@ -106,10 +106,10 @@ public class TextMessageHandler {
             }
             Encode encoder = new Encode();
             int[] encodedInts = encoder.encode_raw(256, 114, 134, 158, bytesInt);
-            String output = "";
+            StringBuilder output = new StringBuilder();
 
-            for(int i = 0; i < encodedInts.length; i++){
-                output += SYMBOL_TABLE[encodedInts[i]];
+            for (int encodedInt : encodedInts) {
+                output.append(SYMBOL_TABLE[encodedInt]);
             }
 
 
@@ -191,12 +191,13 @@ public class TextMessageHandler {
 
 
     public static class SMSReceiver extends BroadcastReceiver {
-        private static TextMessage txtmsg;
+        private TextMessage txtmsg;
 
         private final String TAG = "SMSReceiver";
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "onReceive called");
             ///**Not decoding entire concatenated string at once!
             if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
                 Bundle extras = intent.getExtras();
@@ -222,16 +223,20 @@ public class TextMessageHandler {
                             }
                 }
                 */
-                String Message = "";
+                StringBuilder Message = new StringBuilder();
                 SmsMessage[] messages = new SmsMessage[pdus.length];
                 for (int i = 0; i < messages.length; i++) {
                     messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]); //Returns one message, in array because multipart message due to sms max char
-                    Message += messages[i].getMessageBody(); // Using +=, because need to add multipart from before also
+                    Message.append(messages[i].getMessageBody()); // Using +=, because need to add multipart from before also
+                 //   if(messages[i].isStatusReportMessage()){
+                 //       Log.i(TAG, "message " + i + " was a status message");
+                 //   }
+                 //   Log.i(TAG, messages[i].getMessageBody());
                 }
                 String origin = messages[0].getOriginatingAddress();
 
                 if(PhoneNumberUtils.compare(origin, PHONE_NUMBER)) { //remove leading zeroes?
-                    if (Message.contains("Process starting")) {
+                    if (Message.toString().contains("Process starting")) {
                         Log.d("amt msgs", Message.substring(0, Message.indexOf(" ")));
                         txtmsg = new TextMessage(Integer.parseInt(Message.substring(0, Message.indexOf(" "))), context);
                     } else {
@@ -255,31 +260,82 @@ public class TextMessageHandler {
                     //    MainBrowserScreen.webView.loadDataWithBaseURL(null, body, "text/html", "utf-8", null);
                 }else if(TxtNetServerService.isRunning){
                     try {
+                        Log.i(TAG, "origin number: " + origin);
                         Phonenumber.PhoneNumber incomingPhone = PhoneNumberUtil.getInstance().parse(origin,"");
-                        if(Message.startsWith("ping TxtNet")){
-                            int theirVersion = Integer.parseInt(Message.substring(Message.indexOf(" v")+1, (Message.substring(Message.indexOf(" v")+1).indexOf(" "))));
-                            String theirProtocol = (Message.substring(Message.lastIndexOf(" ")+1).replaceAll("[^a-zA-Z0-9]", ""));
+                        if(Message.toString().startsWith("ping TxtNet")){
+                            int theirVersion = Integer.parseInt(Message.substring(Message.indexOf(" v")+2, (Message.indexOf(" ", Message.indexOf("v") + 1))));
+                            String theirProtocol = (Message.substring(Message.lastIndexOf(" ")+1).replaceAll("[^a-zA-Z0-9]", "")); //only alphanumeric regex allowed
                             int myVersion = BuildConfig.VERSION_CODE;
                             String body = "TxtNet Server v" + myVersion;
                             if(theirVersion < myVersion){
-                                body += "\nYour version is outdated, latest is v" + myVersion;
+                                body += "\nYour version is outdated. Download the newest release at https://bit.ly/txtnet-apk";
                             }
+                            Log.i(TAG, "Received message " + Message.toString());
                             SmsManager sms = SmsManager.getDefault();
-                            sms.sendTextMessage(PHONE_NUMBER, null, body, null, null);
+                            String outputNumber = "";
+                            if(incomingPhone.hasCountryCode()){
+                                outputNumber += incomingPhone.getCountryCode();
+                            }
+                            outputNumber += incomingPhone.getNationalNumber();
 
-                        }else if(Message.contains("Website Cancel")){
+//                            /**--------- Modified code below, delete when done ----------*/
+//
+//                            byte[] byteArray = "https://www.google.com/search?q=what+does+air+quality+index+measure&sxsrf=AJOqlzXwE5qXE891YLoXY9jnHgblKvFbIw%3A1679462295955&source=hp&ei=l48aZLnJN7arptQPs8So6Ag&iflsig=AK50M_UAAAAAZBqdp-Sp5H_d0433EXiPD4qpUqbvHNOZ&ved=0ahUKEwj58L7M5O79AhW2lYkEHTMiCo0Q4dUDCAo&uact=5&oq=what+does+air+quality+index+measure&gs_lcp=Cgdnd3Mtd2l6EAMyBQgAEIAEMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIFCAAQhgM6BwgjEOoCECc6BAgjECc6BQgAEJECOgsIABCABBCxAxCDAToRCC4QgAQQsQMQgwEQxwEQ0QM6CwguEIAEELEDEIMBOgsILhCxAxCDARDUAjoOCC4QgAQQsQMQxwEQ0QM6BAgAEEM6CggAELEDEIMBEEM6BwgAELEDEEM6CAgAELEDEIMBOggIABCABBCxAzoLCC4QgAQQxwEQ0QM6BggAEAoQQzoFCAAQsQM6DQgAEIAEELEDEIMBEAo6BwgAEIAEEAo6CggAEIAEELEDEAo6CggAEIAEEBQQhwI6BwguEIAEEAo6BwgAEA0QgAQ6CAgAEBYQHhAPUJMpWOKkAmDgpQJoRnAAeACAAXeIAfcvkgEFNTAuMTWYAQCgAQGwAQo&sclient=gws-wiz".getBytes();
+//                            int[] bytesInt = new int[byteArray.length];
+//                            for(int i = 0; i < bytesInt.length; i++){
+//                                bytesInt[i] = byteArray[i] & 0xFF; //bitwise AND operator, converts signed byte to unsigned
+//                            }
+//                            Encode encoder = new Encode();
+//                            int[] encodedInts = encoder.encode_raw(256, 114, 134, 158, bytesInt);
+//                            StringBuilder output = new StringBuilder();
+//
+//                            for (int encodedInt : encodedInts) {
+//                                output.append(SYMBOL_TABLE[encodedInt]);
+//                            }
+//
+//
+//                            final int NUM_CHARS_PER_SMS = 158;
+//                            ArrayList<String> smsQueue =  new ArrayList<>();
+//
+//                            int j;
+//                            for(j = 0; j < output.length(); j += NUM_CHARS_PER_SMS){
+//                                smsQueue.add(output.substring(j, j+NUM_CHARS_PER_SMS));
+//                            }
+//                            String[] smsFinalQueue = new String[smsQueue.size()];
+//                            for(j = 0; j < smsQueue.size(); j++){
+//                                int[] jArr = {j};
+//                                StringBuffer sb = new StringBuffer();
+//                                String[] indices = Base10Conversions.v2r(jArr);
+//
+//                                sb.append(indices[0]);
+//                                String str = sb.toString();
+//
+//                                if(j == smsQueue.size()-1){
+//                                    smsQueue.set(j, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(j));
+//                                }else{
+//                                    smsQueue.set(j, str + smsQueue.get(j));
+//                                }
+//                            }
+//                            for(String msg : smsQueue){
+//                                sms.sendTextMessage(outputNumber, null, msg, null, null);
+//
+//                            }
+//                            /* ----------------------------------*/
+
+                            sms.sendTextMessage(outputNumber, null, body, null, null);
+
+                        }else if(Message.toString().contains("Website Cancel")){
                             if(TxtNetServerService.smsDataBase.containsKey(incomingPhone)){
                                 Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).stopSend();
-
                             }
                         }
                         else if(TxtNetServerService.smsDataBase.containsKey(incomingPhone)){
                             //if the message ends up being a new request, we need to clear out the previous arraylist inside of the SmsSocket.
-                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message);
+                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                         }else{
                             TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance));
-                            //TODO: Fix the above code to avoid static object reference
-                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message);
+                            //TODO: Fix the above code to avoid static object reference(??)
+                            Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                             //attempt to parse it as if it was a user request. if parsing fails, stop.
                         }
                         //REMEMBER TO SEND "Process starting xxx" BEFORE THE ACTUAL CONTENT

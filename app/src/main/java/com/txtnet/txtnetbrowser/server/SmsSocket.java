@@ -111,7 +111,14 @@ public class SmsSocket {
         int howManyTextsToExpect = (smsQueue.size());
 
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber.toString(), null, howManyTextsToExpect + " Process starting", null, null);
+
+        String outputNumber = "";
+        if(phoneNumber.hasCountryCode()){
+            outputNumber += phoneNumber.getCountryCode();
+        }
+        outputNumber += phoneNumber.getNationalNumber();
+
+        sms.sendTextMessage(outputNumber, null, howManyTextsToExpect + " Process starting", null, null);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -119,7 +126,7 @@ public class SmsSocket {
         }
         int currentMessageID = 0;
         while(shouldSend.get() && currentMessageID < smsQueue.size()){
-            sms.sendTextMessage(phoneNumber.toString(), null, smsQueue.get(currentMessageID), null, null);
+            sms.sendTextMessage(outputNumber, null, smsQueue.get(currentMessageID), null, null);
             currentMessageID++;
         }
     }
@@ -192,6 +199,7 @@ public class SmsSocket {
             inputRequestBuffer.clear();
             TxtNetServerService.smsDataBase.remove(phoneNumber);
         }
+        assert urlWithGarbage != null;
         int[] urlEncoded = Arrays.copyOfRange(urlWithGarbage, 0, urlWithGarbage.length - garbageData);
         byte[] urlBytes = new byte[urlEncoded.length];
         for(int i = 0; i < urlEncoded.length; i++){

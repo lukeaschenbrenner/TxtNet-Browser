@@ -39,7 +39,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    implementation 'androidx.core:core-ktx:+'
+    implementation 'androidx.core:core-ktx:1.9.0'
     implementation files('libs/brotli4droid-release.aar')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -55,8 +55,8 @@ dependencies {
     //implementation files('libs/butterknife-5.1.2.jar')
 
     //might not need anymore
-    implementation 'com.jakewharton:butterknife:10.2.3'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
+    //implementation 'com.jakewharton:butterknife:10.2.3'
+    //annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
 
     //implementation 'uk.co.ribot:easyadapter:1.5.0'
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.45'

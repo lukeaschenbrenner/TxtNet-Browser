@@ -11,6 +11,7 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -24,6 +25,7 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.BlockedNumberContract;
 
@@ -104,6 +106,13 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         Button button1 = (Button) findViewById(R.id.startServiceButton);
         Button button2 = (Button) findViewById(R.id.endServiceButton);
 
+        final TextView tv = (TextView) findViewById(R.id.serverStatusText);
+        if(TxtNetServerService.isRunning){
+            tv.setText(R.string.server_started);
+        }else{
+            tv.setText(R.string.server_stopped);
+        }
+
         button1.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("PrivateApi")
             public void onClick(View v) {
@@ -141,14 +150,19 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                         grantPermissions();
                     }
 
-                    Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
-                    intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+                //    Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+                //    intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        v.getContext().getApplicationContext().startForegroundService(intent);
-                    }else{
-                        v.getContext().getApplicationContext().startService(intent);
-                    }
+                 //   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                 //       v.getContext().getApplicationContext().startForegroundService(intent);
+                 //   }else{
+                 //       v.getContext().getApplicationContext().startService(intent);
+                 //   }
+
+
+                    doBindService();
+                    final TextView tv = (TextView) findViewById(R.id.serverStatusText);
+                    tv.setText(R.string.server_started);
                 }
 
 
@@ -183,6 +197,9 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                 Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
                 intent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
                 v.getContext().getApplicationContext().startService(intent);
+                doUnbindService();
+                final TextView tv = (TextView) findViewById(R.id.serverStatusText);
+                tv.setText(R.string.server_stopped);
             }
         });
 
@@ -293,6 +310,72 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         }catch(SecurityException se){
             Toast.makeText(this, "Permission WRITE_SECURE_SETTINGS not obtained!", Toast.LENGTH_LONG).show();
 
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
+    }
+
+    // Don't attempt to unbind from the service unless the client has received some
+    // information about the service's state.
+    private boolean mShouldUnbind;
+
+    // To invoke the bound service, first make sure that this value
+    // is not null.
+    private TxtNetServerService mBoundService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((TxtNetServerService.LocalBinder)service).getService();
+
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+        }
+    };
+
+    void doBindService() {
+        // Attempts to establish a connection with the service.  We use an
+        // explicit class name because we want a specific service
+        // implementation that we know will be running in our own process
+        // (and thus won't be supporting component replacement by other
+        // applications).
+        Intent intent = new Intent(ServerDisplay.this, TxtNetServerService.class);
+        intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+
+        if (bindService(intent,
+                mConnection, Context.BIND_AUTO_CREATE)) {
+            mShouldUnbind = true;
+               if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                   startForegroundService(intent);
+               }else{
+                   startService(intent);
+               }
+
+        } else {
+            Log.e("MY_APP_TAG", "Error: The requested service doesn't " +
+                    "exist, or this client isn't allowed access to it.");
+        }
+    }
+
+    void doUnbindService() {
+        if (mShouldUnbind) {
+            // Release information about the service's state.
+            unbindService(mConnection);
+            mShouldUnbind = false;
         }
     }
 }

@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -107,11 +108,14 @@ public class TxtNetServerService extends Service {
 
     public static TxtNetServerService instance = null;
 
-    @Nullable
+    private Binder binder;
+
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
+
+
 
     @Override
     @SuppressLint("UnspecifiedImmutableFlag")
@@ -211,10 +215,6 @@ public class TxtNetServerService extends Service {
         Toast.makeText(this, "OnDestroy called!", Toast.LENGTH_SHORT).show();
     }
 
-    //@Override
-   // public IBinder onBind(Intent intent) {
-    //    return mBinder;
-    //}
 
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
@@ -259,6 +259,7 @@ public class TxtNetServerService extends Service {
         HandlerThread thread = new HandlerThread("SMSProcessThread",
                 Process.THREAD_PRIORITY_MORE_FAVORABLE);
         thread.start();
+        binder = new LocalBinder();
 
         Shizuku.pingBinder();
 
@@ -272,7 +273,7 @@ public class TxtNetServerService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, Build.VERSION.SDK_INT < Build.VERSION_CODES.O ?
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY :
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, PixelFormat.TRANSLUCENT);
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = 0;
         params.y = 0;
@@ -293,8 +294,9 @@ public class TxtNetServerService extends Service {
         //
         //////// Populate webviews
         //
+        Log.i(TAG, "Populating webviews...");
         for(int i = 0; i < WEBVIEWS_LIMIT; i++) {
-            webViews.set(i, new WebView(this));
+            webViews.add(new WebView(this));
             webViewBusynessMap.put(webViews.get(i), new AtomicBoolean(false));
             webViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
             view.addView(webViews.get(i));
@@ -330,7 +332,7 @@ In activity:
         }
         windowManager.addView(view,params);
                 //    surfaceView.getHolder().addCallback(this);
-
+        Log.i(TAG, "Views added.");
 
         }
 
@@ -642,6 +644,12 @@ In activity:
         }
         return false;
     }
+
+    public class LocalBinder extends Binder {
+        TxtNetServerService getService() {
+            return TxtNetServerService.this;
+        }
+    }
 }
 class MyNodeVisitor implements NodeVisitor{
     public MyNodeVisitor(List<String> childList) {
@@ -673,6 +681,7 @@ class MyNodeVisitor implements NodeVisitor{
 
         }
     }
+
 }
 
 
