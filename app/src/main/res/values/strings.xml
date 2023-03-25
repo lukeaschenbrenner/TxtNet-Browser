@@ -29,4 +29,6 @@
     <string name="cancel">Close App</string>
     <string name="is_tosaccepted">isTosAccepted</string>
     <string name="server_description">The TxtNet Browser server uses the device\'s internet connection to communicate websites to clients through SMS.</string>
+    <string name="server_started">Started</string>
+    <string name="server_stopped">Stopped</string>
 </resources>

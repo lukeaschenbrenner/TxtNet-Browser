@@ -18,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.google.i18n.phonenumbers.Phonenumber;
+import com.txtnet.brotli4droid.Brotli4jLoader;
 import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SmsSocket {
     public ArrayList<String> inputRequestBuffer;
+    int finalBufferLength = 9999;
     public StringBuilder decodedUrl = new StringBuilder();
     public ArrayList<String> outputMessagesBuffer;
     private Phonenumber.PhoneNumber phoneNumber;
@@ -67,7 +69,8 @@ public class SmsSocket {
     public void sendHTML(String html){
 
         ByteArrayOutputStream brotliOutput = new ByteArrayOutputStream();
-
+        Brotli4jLoader.ensureAvailability();
+        Log.i(TAG, "Brotli4J is available? " + (Brotli4jLoader.isAvailable() ? "true" : "false"));
         BufferedWriter brotliWriter = null;
         try {
             brotliWriter = new BufferedWriter(new OutputStreamWriter(new BrotliOutputStream(brotliOutput)));
@@ -142,7 +145,6 @@ public class SmsSocket {
     //public String[] textBuffer = null;
     public String url;
     //Context context;
-    String[] reassembled = null;
 
 
     public void addPart(String message) throws Exception {
@@ -151,67 +153,86 @@ public class SmsSocket {
             return;
         }
 
-        if(message.startsWith("@@") || (message.startsWith("àà") && (!inputRequestBuffer.isEmpty()))){
+        if(message.matches("([0-9]){2}(?s).*")){ // message is the first message
+            // || (message.startsWith("àà") && (!inputRequestBuffer.isEmpty()) && inputRequestBuffer.size() > 0)){
             inputRequestBuffer.clear();
-            reassembled = new String[inputRequestBuffer.size()];
+            finalBufferLength = Integer.parseInt(message.substring(0, 2));
+            //reassembled = new String[inputRequestBuffer.size()];
         }
-        if(reassembled == null){
-            reassembled = new String[inputRequestBuffer.size()];
-        }
+       // if(reassembled == null){
+       //     reassembled = new String[inputRequestBuffer.size()];
+       // }
+
 
         inputRequestBuffer.add(message);
 
-        for(String str : inputRequestBuffer){
-            int textOrder = -1;
+        if(inputRequestBuffer.size() >= finalBufferLength){ // || finalBufferLength == 1
+            finalBufferLength = 9999;
+            String[] reassembled = new String[inputRequestBuffer.size()];
 
-            if(message.startsWith("àà")){
-                textOrder = inputRequestBuffer.size()-1;
-            }else{
-                textOrder = Base10Conversions.r2v(str.substring(0, 2));
+            for(String str : inputRequestBuffer){
+                int textOrder = -1;
+
+                if(message.startsWith(SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1])){
+                    textOrder = finalBufferLength-1; // àà means this is the final message of a multi-part message
+                    //inputRequestBuffer.size()-1;
+                }
+                else if(message.matches("([0-9]){2}(?s).*")){// PROBLEM: we should know ahead of time how big our buffer should eventually be for the link we received. similar to the code for "Process Starting". This wastes space adding an entire text for every request though.
+                    // We could append to beginning of every message number of texts eg. 12@@... and then take the numDigits and create a custom encoding for that one specific text.
+                    // However, that's very difficult to accomplish without knowing the number of digits we will need before encoding the first text, to predict how many bytes can fit into that text.
+                    // Instead, we simply append the number instead of @@, which allows us to have 100 SMS messages in one request before encoding may possibly use two digits at the beginning. Considering the actual max is 12996, this is a far cry from the potential indexing allowed by base 114 2-character index.
+                    // Not a problem right now for URLs, but will become an issue later when trying to transmit binary data
+                    textOrder = 0;
+
+
+                }else{
+                    textOrder = Base10Conversions.r2v(str.substring(0, 2));
+                }
+                String text = str.substring(2);
+                reassembled[textOrder] = text;
             }
-            String text = str.substring(2);
-            reassembled[textOrder] = text;
-        }
-        StringBuilder stringReassembled = new StringBuilder();
-        for(String part : reassembled){
-            stringReassembled.append(part);
-        }
-        String str_reassembled = stringReassembled.toString();
-        int[] nums = new int[str_reassembled.length()];
-        char[] chr = str_reassembled.toCharArray();
-        for(int i = 0; i < str_reassembled.length(); i++){
-            char myChr = chr[i];
-            nums[myChr] = Index.findIndex(SYMBOL_TABLE, String.valueOf(chr));
-            //nums[myChr] = (Arrays.asList(SYMBOL_TABLE).indexOf(String.valueOf(chr)));
-        }
-        int garbageData = 0;
-
-        for(int p = nums.length-1; nums[p] == 114; p--){
-            garbageData++;
-        }
-        int[] urlWithGarbage = null;
-
-
-        try{
-            urlWithGarbage = new Encode().encode_raw(114, 256, 158, 134, nums); //actually decoding, not encoding
-        }catch(Exception e){
-            Log.e(TAG, "Error: Decoding user message failed.");
             inputRequestBuffer.clear();
-            TxtNetServerService.smsDataBase.remove(phoneNumber);
-        }
-        assert urlWithGarbage != null;
-        int[] urlEncoded = Arrays.copyOfRange(urlWithGarbage, 0, urlWithGarbage.length - garbageData);
-        byte[] urlBytes = new byte[urlEncoded.length];
-        for(int i = 0; i < urlEncoded.length; i++){
-            urlBytes[i] = (byte)(urlEncoded[i]);
-        }
+
+            //(int)(Math.log10(n)+1); << if we varied the number of input SMS digits, this would be the way to determine the number of digits of a number
+            StringBuilder stringReassembled = new StringBuilder();
+            for(int i = 0; i < reassembled.length; i++){
+                String part = reassembled[i];
+                stringReassembled.append(part);
+            }
+            String str_reassembled = stringReassembled.toString();
+            int[] nums = new int[str_reassembled.length()];
+            char[] chr = str_reassembled.toCharArray();
+            for(int i = 0; i < str_reassembled.length(); i++){
+                char myChr = chr[i];
+                nums[i] = Index.findIndex(SYMBOL_TABLE, String.valueOf(myChr)); //TODO: HOW DOES THIS WORK?
+                //nums[myChr] = (Arrays.asList(SYMBOL_TABLE).indexOf(String.valueOf(chr)));
+            }
+            int garbageData = 0;
+
+            for(int p = nums.length-1; nums[p] == 114; p--){
+                garbageData++;
+            }
+            int[] urlWithGarbage = null;
 
 
+            try{
+                    urlWithGarbage = new Encode().encode_raw(114, 256, 158, 134, nums); //actually decoding, not encoding
+            }catch(Exception e){
+                Log.e(TAG, "Error: Decoding user message failed.");
+                inputRequestBuffer.clear();
+                TxtNetServerService.smsDataBase.remove(phoneNumber);
+            }
+            assert urlWithGarbage != null;
+            int[] urlEncoded = Arrays.copyOfRange(urlWithGarbage, 0, urlWithGarbage.length - garbageData);
+            byte[] urlBytes = new byte[urlEncoded.length];
+            for(int i = 0; i < urlEncoded.length; i++){
+                urlBytes[i] = (byte)(urlEncoded[i]);
+            }
 
-
-        String decodedUrlString = new String(urlBytes, StandardCharsets.UTF_8);
-        decodedUrl.append(decodedUrlString);
-        if(message.startsWith("àà")){
+            String decodedUrlString = new String(urlBytes, StandardCharsets.UTF_8);
+            decodedUrl.append(decodedUrlString);
+            //if(message.startsWith("àà")){ //(message.startsWith("àà") && (!inputRequestBuffer.isEmpty())
+            // we don't know that the messages will guaranteed come in in order!
             String finalDecString = decodedUrl.toString();
             decodedUrl = new StringBuilder();
 
@@ -226,6 +247,14 @@ public class SmsSocket {
             service.serviceHandler.sendMessage(msg);
 
         }
+
+
+
+
+
+
+
+        // }
 
 
 

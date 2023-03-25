@@ -27,6 +27,7 @@ import com.txtnet.txtnetbrowser.basest.Base10Conversions;
 import androidx.appcompat.app.AlertDialog;
 
 import java.io.FileOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -120,17 +121,22 @@ public class TextMessageHandler {
             for(j = 0; j < output.length(); j += NUM_CHARS_PER_SMS){
                 smsQueue.add(output.substring(j, j+NUM_CHARS_PER_SMS));
             }
-            String[] smsFinalQueue = new String[smsQueue.size()];
+           // String[] smsFinalQueue = new String[smsQueue.size()];
             for(j = 0; j < smsQueue.size(); j++){
                 int[] jArr = {j};
-                StringBuffer sb = new StringBuffer();
-                String[] indices = Base10Conversions.v2r(jArr);
+                StringBuilder sb = new StringBuilder();
+                String[] indices = Base10Conversions.v2r(jArr); //TODO: Fix this implementation, we should just be populating an array of consecutive ints, then call this method ONCE!
 
                 sb.append(indices[0]);
                 String str = sb.toString();
 
-                if(j == smsQueue.size()-1){
+                if(j > 0 && j == smsQueue.size()-1){
                     smsQueue.set(j, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(j));
+                }else if(j == 0){
+                    if(smsQueue.size() > 100){
+                        throw new RuntimeException("FIXME: REPLACE THIS EXCEPTION WITH A PROPER 'INPUT URL TOO LONG' ERROR.");
+                    }
+                    smsQueue.set(j, new DecimalFormat("00").format(smsQueue.size()-1) + smsQueue.get(j));
                 }else{
                     smsQueue.set(j, str + smsQueue.get(j));
                 }

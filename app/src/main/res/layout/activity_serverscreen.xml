@@ -80,4 +80,17 @@
         app:layout_constraintTop_toBottomOf="@+id/startServiceButton"
         android:textSize="20dp"
         />
+
+    <TextView
+        android:id="@+id/serverStatusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/server_stopped"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/startServiceButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

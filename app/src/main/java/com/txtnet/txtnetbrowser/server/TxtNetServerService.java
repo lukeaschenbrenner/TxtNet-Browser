@@ -125,7 +125,10 @@ public class TxtNetServerService extends Service {
         //Message msg = serviceHandler.obtainMessage();
         //msg.arg1 = startId;
         //serviceHandler.sendMessage(msg);
-        if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
+        if(intent == null){
+            // The service restarted itself (possibly from a crash!)
+        }
+        if (intent == null || intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
             //do nothing for now
         }
         else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
