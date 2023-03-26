@@ -197,13 +197,12 @@ public class TextMessageHandler {
 
 
     public static class SMSReceiver extends BroadcastReceiver {
-        private TextMessage txtmsg;
-
+        private static TextMessage txtmsg;
         private final String TAG = "SMSReceiver";
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "onReceive called");
+            Log.i(TAG, "onReceive called. context: " + context.toString());
             ///**Not decoding entire concatenated string at once!
             if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
                 Bundle extras = intent.getExtras();
@@ -253,10 +252,14 @@ public class TextMessageHandler {
                         //}
 
                         try {
+                            if(txtmsg == null){
+                                Log.i(TAG, "txtmsg object is null. TODO: fix static object reference");
+                            }
                             int messageNumber = Base10Conversions.r2v(Message.substring(0, 2));
                             String messageBody = Message.substring(2);
                            // Log.d("msg body: ", Message.substring(2));
                             // txtmsg.addPart(Integer.parseInt(textOrder), Message.substring(2));
+
                             txtmsg.addPart(messageNumber, messageBody);
                         } catch (Exception e) {
                             e.printStackTrace();

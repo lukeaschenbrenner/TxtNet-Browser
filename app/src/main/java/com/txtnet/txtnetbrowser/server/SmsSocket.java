@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.txtnet.brotli4droid.Brotli4jLoader;
+import com.txtnet.brotli4droid.decoder.BrotliInputStream;
 import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
@@ -28,8 +29,6 @@ import com.txtnet.txtnetbrowser.basest.Encode;
 import com.txtnet.txtnetbrowser.receiver.SmsDeliveredReceiver;
 import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
 import com.txtnet.txtnetbrowser.util.Index;
-
-import org.brotli.dec.BrotliInputStream;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -41,6 +40,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class SmsSocket {
 
         ByteArrayOutputStream brotliOutput = new ByteArrayOutputStream();
         Brotli4jLoader.ensureAvailability();
-        Log.i(TAG, "Brotli4J is available? " + (Brotli4jLoader.isAvailable() ? "true" : "false"));
+        //Log.i(TAG, "Brotli4J is available? " + (Brotli4jLoader.isAvailable() ? "true" : "false"));
         BufferedWriter brotliWriter = null;
         try {
             brotliWriter = new BufferedWriter(new OutputStreamWriter(new BrotliOutputStream(brotliOutput)));
@@ -86,18 +86,44 @@ public class SmsSocket {
                 brotliWriter.write(line);
             }
             brotliWriter.flush();
+            brotliWriter.close();
         }catch(IOException ioe){
             ioe.printStackTrace();
         }
         Encode smsEncoder = new Encode();
         byte[] htmlBytes = brotliOutput.toByteArray();
+
+
+//        //******* TEST ********
+//        BufferedReader brot2 = null;
+//        try {
+//            brot2 = new BufferedReader(new InputStreamReader(new BrotliInputStream(new ByteArrayInputStream(htmlBytes))));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        String linee = "";
+//        try{
+//            while((line=brot2.readLine()) != null) {
+//                linee += line;
+//            }
+//            brot2.close();
+//            Log.i("LINEE", "LINEE: " + linee);
+//        }catch(IOException ioe){
+//            ioe.printStackTrace();
+//        }
+//        // ************************
+
+
+        Log.i(TAG, "HTMLBYTES: " + Arrays.toString(htmlBytes));
         int[] htmlBytesAsIntArray = new int[htmlBytes.length];
         for(int i = 0; i < htmlBytes.length; i++){
-            htmlBytesAsIntArray[i] = (int)(htmlBytes[i]);
+            htmlBytesAsIntArray[i] = (htmlBytes[i] & 0xFF);
         }
+        Log.i(TAG, Arrays.toString(htmlBytesAsIntArray));
 
-        int[] encodedSms = smsEncoder.encode_raw(256, 114, 143, 158, htmlBytesAsIntArray);
+        int[] encodedSms = smsEncoder.encode_raw(256, 114, 134, 158, htmlBytesAsIntArray);
         StringBuilder smsEncodedOutputBuilder = new StringBuilder();
+        Log.i(TAG, Arrays.toString(encodedSms));
         for(int value : encodedSms){
             smsEncodedOutputBuilder.append(SYMBOL_TABLE[value]);
         }
@@ -107,10 +133,20 @@ public class SmsSocket {
         for(int i = 0; i < smsEncodedOutput.length(); i += NUM_CHARS_PER_SMS){
             smsQueue.add(smsEncodedOutput.substring(i, i + NUM_CHARS_PER_SMS));
         }
-        for(int j = 0; j < smsQueue.size(); j++){
-            String str = (v2r(new int[]{j}))[0] + smsQueue.get(j);
-            smsQueue.set(j, str);
+        int[] indices = new int[smsQueue.size()];
+        for(int j = 0; j < indices.length; j++){
+            indices[j] = j;
         }
+        String[] indexCharacters = v2r(indices);
+        //Log.i(TAG, smsQueue.size() + "<smsqueue indexcharacters>" + indexCharacters.length);
+        for(int k = 0; k < indexCharacters.length; k++){
+            //if(k == smsQueue.size()-1){
+            //    smsQueue.set(k, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(k));
+            //}else{
+                smsQueue.set(k, indexCharacters[k] + smsQueue.get(k));
+            //}
+        }
+
         int howManyTextsToExpect = (smsQueue.size());
 
         SmsManager sms = SmsManager.getDefault();

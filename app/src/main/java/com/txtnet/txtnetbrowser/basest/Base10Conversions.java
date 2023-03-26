@@ -24,28 +24,29 @@ public class Base10Conversions {
     public static String[] v2r(int[] numbers){
         int[] tempNum = numbers;
         int alphabet_length = SYMBOL_TABLE.length;
-        String[] result = new String[0];
+        String[] result = new String[numbers.length];
 
         for(int i = 0; i < tempNum.length; i++) {
+            result[i] = "";
             int num = tempNum[i];
             int originalNum = num;
             if (num == 0) {
-                result = new String[1];
-                result[0] = (SYMBOL_TABLE[0] + SYMBOL_TABLE[0]);
+                result[i] = (SYMBOL_TABLE[0] + SYMBOL_TABLE[0]);
             }
             while (num > 0) {
-                String[] tempArr = new String[result.length + 1];
-                tempArr[0] = SYMBOL_TABLE[num % alphabet_length];
+               // String[] tempArr = new String[result.length + 1];
+                result[i] = SYMBOL_TABLE[num % alphabet_length] + result[i];
                 //System.arraycopy(result, 0, tempArr, 1, result.length);
-                System.arraycopy(tempArr, 0, result, 0, result.length);
+                //System.arraycopy(tempArr, 0, result, 0, result.length);
                 num /= alphabet_length;
-                result = tempArr;
+               //result = tempArr;
             }
             if (originalNum < alphabet_length && originalNum != 0) {
-                String[] tempArr = new String[result.length + 1];
-                tempArr[0] = SYMBOL_TABLE[0];
-                System.arraycopy(result, 0, tempArr, 1, result.length);
-                result = tempArr;
+                //String[] tempArr = new String[result.length + 1];
+                //tempArr[0] = SYMBOL_TABLE[0];
+                //System.arraycopy(result, 0, tempArr, 1, result.length);
+                //result = tempArr;
+                result[i] = SYMBOL_TABLE[0] + result[i];
             }
         }
         return result;
