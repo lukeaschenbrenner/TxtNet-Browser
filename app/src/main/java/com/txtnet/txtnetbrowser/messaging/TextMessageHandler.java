@@ -197,7 +197,7 @@ public class TextMessageHandler {
 
 
     public static class SMSReceiver extends BroadcastReceiver {
-        private static TextMessage txtmsg;
+        private static TextMessage txtmsg;//TODO: single_instance (make into a singleton)
         private final String TAG = "SMSReceiver";
 
         @Override

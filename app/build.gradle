@@ -13,17 +13,31 @@ android {
         applicationId "com.txtnet.txtnetbrowser"
         minSdk 19
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
         release {
             //minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+        }
+        debug {
+            //multiDexEnabled true // We are able to avoid multidex in release builds due to resource shrinking and minifying.
+            defaultConfig.minSdkVersion 21 // Allows android to automatically handle dex management with ART
+            defaultConfig.vectorDrawables.useSupportLibrary = true
+            defaultConfig.multiDexEnabled = true
         }
     }
     compileOptions {
@@ -31,6 +45,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     namespace 'com.txtnet.txtnetbrowser'
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
@@ -79,6 +96,16 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'org.apache.commons:commons-text:1.10.0'
     implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
+
+    def room_version = "2.5.1"
+
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+//    def multidex_version = "2.0.1"
+//    debugImplementation "androidx.multidex:multidex:$multidex_version"
+
+
 
 
 }

@@ -52,6 +52,7 @@ import android.widget.Toast;
 //import com.aayushatharva.brotli4j.Brotli4jLoader;
 import com.txtnet.brotli4droid.Brotli4jLoader;
 import com.github.appintro.AppIntroFragment;
+import com.txtnet.txtnetbrowser.database.DBInstance;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
 import com.txtnet.txtnetbrowser.server.ServerDisplay;
@@ -129,6 +130,9 @@ public class MainBrowserScreen extends AppCompatActivity {
 
 
             setContentView(R.layout.activity_main);
+
+            //Instantiate database
+            DBInstance.getInstance(this);
 
             boolean missingPerms = false;
             //above is the intro screen, but below we manually check for permissions just in case
@@ -511,6 +515,10 @@ public class MainBrowserScreen extends AppCompatActivity {
                     case R.id.TxtNetServer:
                         Intent intent2 = new Intent(v.getContext(), ServerDisplay.class);
                         startActivity(intent2);
+                        return true;
+                    case R.id.serverPhoneSelect:
+                        Intent intent3 = new Intent(v.getContext(), ServerPickerActivity.class);
+                        startActivity(intent3);
                         return true;
                     default:
                         return false;

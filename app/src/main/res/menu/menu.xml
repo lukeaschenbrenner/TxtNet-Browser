@@ -15,5 +15,10 @@
         android:icon="@drawable/home_icon"
         android:title="TxtNet Server"
         />
+    <item android:id="@+id/serverPhoneSelect"
+        android:icon="@drawable/home_icon"
+        android:title="Select Server Phone Number"
+        />
+
 
 </menu>

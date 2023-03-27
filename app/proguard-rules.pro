@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-dontwarn com.yahoo.platform.yui.compressor.CssCompressor
+-dontwarn com.yahoo.platform.yui.compressor.JavaScriptCompressor
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-dontwarn org.mozilla.javascript.ErrorReporter
