@@ -1,15 +1,19 @@
 package com.txtnet.txtnetbrowser.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity
+@Entity(indices = {@Index(value = {"phone_number", "server_country_code"},
+        unique = true)})
 public class Server {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int uid;
 
+    @NonNull
     @ColumnInfo(name = "phone_number")
     public String phoneNumber;
 
@@ -19,11 +23,11 @@ public class Server {
     @ColumnInfo(name = "server_country_code")
     public int countryCode;
 
-    public Server(int uid, String phoneNumber, boolean serverStatus, int countryCode){
+    public Server(int uid, @NonNull String phoneNumber, boolean serverStatus, int countryCode){
         this.uid = uid;
         this.phoneNumber = phoneNumber;
         this.serverStatus = serverStatus;
         this.countryCode = countryCode;
     }
-    public Server(){}
+
 }

@@ -1,5 +1,6 @@
 package com.txtnet.txtnetbrowser.database;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -11,10 +12,10 @@ import java.util.List;
 @Dao
 public interface ServerDao {
     @Query("SELECT * FROM Server")
-    List<Server> getAll();
+    LiveData<List<Server>> getAll();
 
     @Query("SELECT * FROM Server WHERE server_country_code == :countryCode")
-    List<Server> getAllByCountryCode(int countryCode);
+    LiveData<List<Server>> getAllByCountryCode(int countryCode);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     public void insertServers(Server... servers);

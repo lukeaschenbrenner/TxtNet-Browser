@@ -31,7 +31,7 @@
     <string name="server_description">The TxtNet Browser server uses the device\'s internet connection to communicate websites to clients through SMS.</string>
     <string name="server_started">Started</string>
     <string name="server_stopped">Stopped</string>
-    <string name="title_activity_server_picker">ServerPickerActivity</string>
+    <string name="title_activity_server_picker">Select a phone number</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -122,4 +122,9 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="add_server">Add A Server</string>
+
+    <string name="populate_server_hint">Phone number...</string>
+    <string name="button_save">Save</string>
+    <string name="empty_not_saved">Phone Number not saved because it is empty.</string>
 </resources>

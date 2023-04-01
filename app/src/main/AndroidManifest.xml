@@ -34,7 +34,15 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ServerPickerActivity"
+            android:name=".phonenumbers.NewServerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".phonenumbers.ServerPickerActivity"
             android:exported="false"
             android:label="@string/title_activity_server_picker"
             android:theme="@style/Theme.TxtNetBrowser.NoActionBar">
@@ -105,8 +113,8 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".receiver.SmsSentReceiver"></receiver>
-        <receiver android:name=".receiver.SmsDeliveredReceiver"></receiver> <!-- - The below is required to allow Android to consider this app as a default SMS app, so that the number can be blocked & to delete message history with the number -->
+        <receiver android:name=".receiver.SmsSentReceiver" />
+        <receiver android:name=".receiver.SmsDeliveredReceiver" /> <!-- - The below is required to allow Android to consider this app as a default SMS app, so that the number can be blocked & to delete message history with the number -->
         <!-- BroadcastReceiver that listens for incoming SMS messages -->
         <receiver
             android:name=".SMSActivities$SmsReceiver"

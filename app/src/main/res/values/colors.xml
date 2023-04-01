@@ -29,4 +29,7 @@
     <color name="navy">#000080</color>
 
     <color name="secondary_hint">#DDAAAAAA</color>
+
+    <color name="buttonLabel">#FFFFFF</color>
+
 </resources>
