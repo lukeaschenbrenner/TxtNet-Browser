@@ -15,6 +15,8 @@
     </style>
 
     <style name="Theme.TxtNetBrowser.NoActionBar">
+        <item name="colorPrimary">@color/teal</item>
+
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>

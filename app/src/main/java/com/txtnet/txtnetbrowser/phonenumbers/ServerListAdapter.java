@@ -37,8 +37,7 @@ public class ServerListAdapter extends ListAdapter<Server, ServerViewHolder> {
         Log.i("Phone", "current.phoneNumber="+current.phoneNumber + ", defaultPhone:"+defaultPhone + " equals?" + (current.phoneNumber.equals(defaultPhone) ? "true" : "false"));
         holder.bind(current.phoneNumber, current.phoneNumber.equals(defaultPhone));
 
-
-
+        holder.id = current.uid;
         if(position == selectedItemPos){
             holder.selectedBg();
         }else{
@@ -69,6 +68,8 @@ public class ServerListAdapter extends ListAdapter<Server, ServerViewHolder> {
                 //defaultPhone = (String) holder.serverItemView.getText();
             }
         });
+
+
 
     }
     static class ServerDiff extends DiffUtil.ItemCallback<Server>{

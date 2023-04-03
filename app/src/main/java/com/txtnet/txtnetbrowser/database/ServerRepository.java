@@ -10,7 +10,7 @@ public class ServerRepository {
     private ServerDao mServerDao;
     private LiveData<List<Server>> mAllServers;
 
-    // Note that in order to unit test the WordRepository, you have to remove the Application
+    // Note that in order to unit test the ServerRepository, you have to remove the Application
     // dependency. This adds complexity and much more code, and this sample is not about testing.
     // See the BasicSample in the android-architecture-components repository at
     // https://github.com/googlesamples
@@ -31,6 +31,17 @@ public class ServerRepository {
     public void insert(Server... server) {
         ServerDatabase.databaseWriteExecutor.execute(() -> {
             mServerDao.insertServers(server);
+        });
+    }
+
+    public void delete(Server... server) {
+        ServerDatabase.databaseWriteExecutor.execute(() -> {
+            mServerDao.deleteServers(server);
+        });
+    }
+    public void deleteByID(int uid){
+        ServerDatabase.databaseWriteExecutor.execute(() -> {
+            mServerDao.deleteByID(uid);
         });
     }
 

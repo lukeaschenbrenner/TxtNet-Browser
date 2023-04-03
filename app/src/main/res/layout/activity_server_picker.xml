@@ -24,7 +24,10 @@
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:toolbarId="@+id/toolbar"
-            app:title="Select a phone number">
+            app:title="Select a phone number"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Material3.ActionBar.Title"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.ActionBar.Title"
+            >
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -46,17 +49,17 @@
 <!--        app:srcCompat="@drawable/ic_add_black_24dp" />-->
 <!--    &lt;!&ndash;app:layout_anchorGravity="bottom|end" &ndash;&gt;-->
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/add_server"
-        app:layout_anchor="@id/app_bar"
-        app:srcCompat="@drawable/ic_add_black_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_anchorGravity="bottom|end"
-        />
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/fab"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:contentDescription="@string/add_server"-->
+<!--        app:layout_anchor="@id/app_bar"-->
+<!--        app:srcCompat="@drawable/ic_add_black_24dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_anchorGravity="bottom|end"-->
+<!--        />-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

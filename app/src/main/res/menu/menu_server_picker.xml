@@ -3,8 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.txtnet.txtnetbrowser.phonenumbers.ServerPickerActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_addnumber"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:title="@string/add_server"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_add_black_24dp"
+        app:srcCompat="@drawable/ic_add_black_24dp"
+        android:layout_margin="16dp"
+
+        />
 </menu>

@@ -34,12 +34,15 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 import com.txtnet.brotli4droid.Brotli4jLoader;
 import com.txtnet.txtnetbrowser.database.DBInstance;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
@@ -72,12 +75,19 @@ public class MainBrowserScreen extends AppCompatActivity {
      *
      * TODO 2/17/23: Replace loading screens from new WebView pages to an actual progress screen, to avoid spamming webview queue and allow for easy back button
      * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
+     * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
+     *
+     * TODO Before beta launch:
+     * - Perms popups and tutorial for shizuku
+     *
      */
 
     public static MyWebView webView;
     public static SwipeRefreshLayout swipe;
     EditText urlEditText;
     public static ProgressBar progressBar;
+    public static FrameLayout progressIndicatorBg;
+    public static CircularProgressIndicator progressCircle;
     ImageButton back, forward, stop, refresh, homeButton, goButton;
     private static String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_PHONE_STATE};
 
@@ -165,9 +175,12 @@ public class MainBrowserScreen extends AppCompatActivity {
             homeButton = (ImageButton) findViewById(R.id.home);
             progressBar = (ProgressBar) findViewById(R.id.progress_bar);
             progressBar.setVisibility(View.GONE);
+            progressCircle = (CircularProgressIndicator) findViewById(R.id.progress_circular);
+            progressCircle.setVisibility(View.GONE);
             webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
+            progressIndicatorBg = (FrameLayout) findViewById(R.id.progress_indicator);
 
       //      mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
       //          @Override
@@ -427,6 +440,16 @@ public class MainBrowserScreen extends AppCompatActivity {
             super.onResume();
             findViewById(R.id.web_view).requestFocus();
         }
+        String phoneNum = preferences.getString(getResources().getString(R.string.phone_number), null);
+        Log.i("phonenum", "phonenum=" + (phoneNum == null ? "null" : phoneNum));
+        if(phoneNum == null){
+
+            Intent intent = new Intent(this, ServerPickerActivity.class);
+            intent.putExtra("needDefault", true);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            //make Server Picker view the root view until a default phone number is selected
+        }
     }
 
 
@@ -472,7 +495,9 @@ public class MainBrowserScreen extends AppCompatActivity {
                         startActivity(intent);
                         return true;
                     case R.id.selectPhoneNumber:
-                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), getResources().getString(R.string.default_phone));
+                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), "0");
+                        //String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), null);
+
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                         builder.setTitle("Phone Number (no dashes)");
@@ -551,19 +576,29 @@ public class MainBrowserScreen extends AppCompatActivity {
     }
 
     public static void onProgressChanged(int newProgress, int total) {
+        progressCircle.setMax(total);
         progressBar.setMax(total);
         progressBar.setProgress(newProgress);
+        progressCircle.setProgress(newProgress);
+
         if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {
+            progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
+            progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
         }
         if (newProgress >= total) {
+            progressCircle.setVisibility(CircularProgressIndicator.GONE);
             progressBar.setVisibility(ProgressBar.GONE);
+            progressIndicatorBg.setVisibility(View.GONE);
+
             swipe.setRefreshing(false);
         } else {
+            progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
+            progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
         }
 
-        webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
+        //webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
     }
 
     public void loadUrl(String urlToLoad){

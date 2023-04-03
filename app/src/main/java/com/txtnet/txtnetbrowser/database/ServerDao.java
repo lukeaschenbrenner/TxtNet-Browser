@@ -23,6 +23,9 @@ public interface ServerDao {
     @Delete
     public void deleteServers(Server... users);
 
+    @Query("DELETE FROM Server WHERE uid == :uid")
+    public void deleteByID(int uid);
+
     @Query("SELECT server_last_status FROM Server WHERE uid == :uid LIMIT 1")
     public boolean getServerStatus(int uid);
 

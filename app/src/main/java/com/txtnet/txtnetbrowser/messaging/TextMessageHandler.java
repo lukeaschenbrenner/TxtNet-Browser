@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Objects;
 
 import android.provider.Telephony;
+import android.view.View;
 import android.widget.Toast;
 
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
@@ -191,7 +192,8 @@ public class TextMessageHandler {
        // }
 
         //TODO: loading page?
-        MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><br><center><h1>Loading...</h1></center>", "text/html", "utf-8", null);
+//        MainBrowserScreen.webView.loadDataWithBaseURL(null, "<br><br><br><center><h1>Loading...</h1></center>", "text/html", "utf-8", null);
+            MainBrowserScreen.progressIndicatorBg.setVisibility(View.VISIBLE);
 
     }
 

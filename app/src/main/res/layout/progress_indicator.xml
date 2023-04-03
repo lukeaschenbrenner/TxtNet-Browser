@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:clickable="false"
+    android:focusable="true"
+    android:background="#B0FFFFFF"
+    android:id="@+id/progress_indicator"
+    android:visibility="gone"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:layout_height="match_parent">
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:contentDescription="Website loading progress"
+        android:id="@+id/progress_circular"
+        android:indeterminate="false"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:indicatorSize="90dp"
+        app:indicatorColor="@color/colorPrimary"
+        />
+</FrameLayout>
