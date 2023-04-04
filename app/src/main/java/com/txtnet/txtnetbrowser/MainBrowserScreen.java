@@ -1,11 +1,11 @@
 package com.txtnet.txtnetbrowser;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.IntentCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
@@ -15,46 +15,55 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.appintro.AppIntroFragment;
+//import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.txtnet.brotli4droid.Brotli4jLoader;
+import com.txtnet.txtnetbrowser.blockingactivities.UnsupportedDeviceActivity;
+import com.txtnet.txtnetbrowser.database.DBInstance;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
+import com.txtnet.txtnetbrowser.phonenumbers.ServerPickerActivity;
+import com.txtnet.txtnetbrowser.server.ServerDisplay;
+import com.txtnet.txtnetbrowser.util.AndroidLogFormatter;
+//import com.txtnet.txtnetbrowser.util.EncodeFile;
 import com.txtnet.txtnetbrowser.webview.MyWebView;
 import com.txtnet.txtnetbrowser.webview.MyWebViewClient;
 
 import android.content.ClipboardManager;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class MainBrowserScreen extends AppCompatActivity {
     /**
@@ -63,18 +72,30 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: allow submitting basic web forms as post request
      * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
      * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
+     *
+     * TODO 2/17/23: Replace loading screens from new WebView pages to an actual progress screen, to avoid spamming webview queue and allow for easy back button
+     * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
+     * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
+     *
+     * TODO Before alpha launch:
+     * - Edit readme with new news sites
+     *
      */
 
     public static MyWebView webView;
     public static SwipeRefreshLayout swipe;
     EditText urlEditText;
     public static ProgressBar progressBar;
+    public static FrameLayout progressIndicatorBg;
+    public static CircularProgressIndicator progressCircle;
     ImageButton back, forward, stop, refresh, homeButton, goButton;
     private static String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_PHONE_STATE};
 
     private static final int[] PERMISSIONS_REQUEST_ID = {1, 2, 3, 4, 5};
     public static SharedPreferences preferences;
     public static Context mContext;
+    public static Logger rootLogger;
+    ActivityResultLauncher<String> mGetContent;
 
     void showIntroActivity() {
         Intent intent = new Intent(this, AppIntroActivity.class);
@@ -90,11 +111,12 @@ public class MainBrowserScreen extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (savedInstanceState == null) {
 
+ //       if (savedInstanceState == null) { TODO: See if we should replace this null check?
 
             preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
             mContext = this;
+
 
             boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
             if (!isAccessed) {
@@ -107,6 +129,9 @@ public class MainBrowserScreen extends AppCompatActivity {
 
 
             setContentView(R.layout.activity_main);
+
+            //Instantiate database
+            DBInstance.getInstance(this);
 
             boolean missingPerms = false;
             //above is the intro screen, but below we manually check for permissions just in case
@@ -134,9 +159,8 @@ public class MainBrowserScreen extends AppCompatActivity {
             }
 
 
-
             boolean isTosAccepted = preferences.getBoolean(getString(R.string.is_tosaccepted), false);
-            if(!isTosAccepted){
+            if (!isTosAccepted) {
                 TermsConditionsDialogFragment dialogFragment = new TermsConditionsDialogFragment();
                 dialogFragment.show(getSupportFragmentManager(), "terms");
             }
@@ -151,13 +175,22 @@ public class MainBrowserScreen extends AppCompatActivity {
             homeButton = (ImageButton) findViewById(R.id.home);
             progressBar = (ProgressBar) findViewById(R.id.progress_bar);
             progressBar.setVisibility(View.GONE);
+            progressCircle = (CircularProgressIndicator) findViewById(R.id.progress_circular);
+            progressCircle.setVisibility(View.GONE);
             webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
+            progressIndicatorBg = (FrameLayout) findViewById(R.id.progress_indicator);
 
-        }
+      //      mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
+      //          @Override
+      //          public void onActivityResult(Uri uri) {
+      //              // Handle the returned Uri
+      //          }
+      //      });
+      //  }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance();
+        TextMessageHandler handler = TextMessageHandler.getInstance(preferences.getString(getResources().getString(R.string.phone_number), getResources().getString(R.string.default_phone)));
         Uri startIntentData = getIntent().getData();
 
         if (startIntentData != null) {
@@ -174,7 +207,49 @@ public class MainBrowserScreen extends AppCompatActivity {
             startWebView(null);
             //TODO: Replace with markdown welcome page
         }
+
+
+        if (BuildConfig.DEBUG) {
+
+            File destinationFolder = this.getExternalFilesDir(null);
+
+
+
+            rootLogger = java.util.logging.LogManager.getLogManager().getLogger("");
+            File file = new File(destinationFolder, "logFile.txt");
+            FileHandler handlerLog = null;
+            try {
+                handlerLog = new FileHandler(file.getAbsolutePath(), 5 * 1024 * 1024/*5Mb*/, 1, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            handlerLog.setFormatter(new AndroidLogFormatter(file.getAbsolutePath(),""));
+
+            rootLogger.addHandler(handlerLog);
+            rootLogger.setUseParentHandlers(false);
+
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    paramThrowable.printStackTrace(pw);
+                    try {
+                        sw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    rootLogger.log(Level.SEVERE, sw.toString());
+                    System.exit(2);
+                }
+            });
+
+
+        }
+
     }
+
 
     public void startWebView(String url) {
 
@@ -266,17 +341,28 @@ public class MainBrowserScreen extends AppCompatActivity {
         forward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (webView.canGoForward()) {
-                    webView.goForward();
-                }
+                //if (webView.canGoForward()) {
+                //    webView.goForward();
+                //}
+
+
+               // mGetContent.launch("encoded.br");
+                Brotli4jLoader.ensureAvailability();
+                Log.e("hereswhatsup", "e: " + String.valueOf(Brotli4jLoader.isAvailable()));
+                //UseBrotliTest test = new UseBrotliTest();
+           //     Log.e("shizukualive", String.valueOf(Shizuku.pingBinder())); // "Normal apps should use listeners rather calling this method everytime"
+
+                //test.createFile();
+
             }
         });
 
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
                 webView.stopLoading();
+                assert TextMessageHandler.getInstance() != null;
                 TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
                 TextMessageHandler.getInstance().sendTextMessage("STOP");
                 final Handler handler = new Handler(Looper.getMainLooper());
@@ -309,6 +395,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         });
 
         if (url != null) {
+            assert TextMessageHandler.getInstance() != null;
             TextMessageHandler.getInstance().sendTextMessage(url);
             urlEditText.setText(url);
         }else{
@@ -316,6 +403,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         }
 
     }
+
 
     public void UpdateMyText(String mystr) {
         urlEditText.setText(mystr);
@@ -351,6 +439,17 @@ public class MainBrowserScreen extends AppCompatActivity {
         } else {
             super.onResume();
             findViewById(R.id.web_view).requestFocus();
+        }
+        String phoneNum = preferences.getString(getResources().getString(R.string.phone_number), null);
+        Log.i("phonenum", "phonenum=" + (phoneNum == null ? "null" : phoneNum));
+        if(phoneNum == null){
+
+            Intent intent = new Intent(this, ServerPickerActivity.class);
+            intent.putExtra("needDefault", true);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            ActivityCompat.finishAffinity(MainBrowserScreen.this);
+            //make Server Picker view the root view until a default phone number is selected
         }
     }
 
@@ -396,35 +495,45 @@ public class MainBrowserScreen extends AppCompatActivity {
                         Intent intent = new Intent(v.getContext(), DefaultSMSActivity.class);
                         startActivity(intent);
                         return true;
-                    case R.id.selectPhoneNumber:
-                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), getResources().getString(R.string.default_phone));
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                        builder.setTitle("Phone Number (no dashes)");
-                        View viewInflated = LayoutInflater.from(v.getContext()).inflate(R.layout.phone_select_dialog, (ViewGroup) v.getParent(), false);
-                        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
-                        input.setText(phoneNumber);
-                        builder.setView(viewInflated);
-
-
-                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                SharedPreferences.Editor edit = preferences.edit();
-                                edit.putString(getString(R.string.phone_number), input.getText().toString());
-                                edit.apply();
-
-                            }
-                        });
-                        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        builder.show();
+//                    case R.id.selectPhoneNumber:
+//                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), "0");
+//                        //String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), null);
+//
+//
+//                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+//                        builder.setTitle("Phone Number (no dashes)");
+//                        View viewInflated = LayoutInflater.from(v.getContext()).inflate(R.layout.phone_select_dialog, (ViewGroup) v.getParent(), false);
+//                        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
+//                        input.setText(phoneNumber);
+//                        builder.setView(viewInflated);
+//
+//
+//                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.dismiss();
+//                                SharedPreferences.Editor edit = preferences.edit();
+//                                edit.putString(getString(R.string.phone_number), input.getText().toString());
+//                                edit.apply();
+//
+//                            }
+//                        });
+//                        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.cancel();
+//                            }
+//                        });
+//
+//                        builder.show();
+//                        return true;
+                    case R.id.TxtNetServer:
+                        Intent intent2 = new Intent(v.getContext(), ServerDisplay.class);
+                        startActivity(intent2);
+                        return true;
+                    case R.id.serverPhoneSelect:
+                        Intent intent3 = new Intent(v.getContext(), ServerPickerActivity.class);
+                        startActivity(intent3);
                         return true;
                     default:
                         return false;
@@ -468,19 +577,29 @@ public class MainBrowserScreen extends AppCompatActivity {
     }
 
     public static void onProgressChanged(int newProgress, int total) {
+        progressCircle.setMax(total);
         progressBar.setMax(total);
         progressBar.setProgress(newProgress);
+        progressCircle.setProgress(newProgress);
+
         if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {
+            progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
+            progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
         }
         if (newProgress >= total) {
+            progressCircle.setVisibility(CircularProgressIndicator.GONE);
             progressBar.setVisibility(ProgressBar.GONE);
+            progressIndicatorBg.setVisibility(View.GONE);
+
             swipe.setRefreshing(false);
         } else {
+            progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
+            progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
         }
 
-        webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
+        //webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
     }
 
     public void loadUrl(String urlToLoad){
@@ -496,8 +615,8 @@ public class MainBrowserScreen extends AppCompatActivity {
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
                 TextMessage.url = urlToLoad;
+                assert TextMessageHandler.getInstance() != null;
                 TextMessageHandler.getInstance().sendTextMessage(urlToLoad);
-
             }
 
         } catch (Exception e) {

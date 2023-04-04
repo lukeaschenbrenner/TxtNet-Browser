@@ -1,7 +1,6 @@
 package com.txtnet.txtnetbrowser;
 
 
-import android.app.Activity;
 import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -28,8 +27,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
-import java.util.logging.Logger;
-
+import com.txtnet.txtnetbrowser.blockingactivities.UnsupportedBlockActivity;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
 
 public class DefaultSMSActivity extends AppCompatActivity {
@@ -70,12 +68,12 @@ public class DefaultSMSActivity extends AppCompatActivity {
 
                             Toast.makeText(getApplicationContext(), "Please select \"TxtNet SMS\" as the default SMS app!", Toast.LENGTH_LONG).show();
 
-                            startActivityForResult(roleRequestIntent, 2);
+                            startActivityForResult(roleRequestIntent, 2); // we use the onActivityResult callback to find out if the user actually did this!
 
 
                         }
                     }
-                }else if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+                }else {
                     if(!isDefaultSmsApp(v.getContext())){
 
                         getPackageManager()
@@ -132,6 +130,11 @@ public class DefaultSMSActivity extends AppCompatActivity {
                             String numberFilter = "address='"+ pnE164 + "'";
                             Cursor cursor = getContentResolver().query(Uri.parse("content://sms/"),
                                     null, numberFilter, null, null);
+                            //TODO: Content provider URI is not constant across all Android devices. Should obtain cursor programatically instead.
+                            /*
+                                ContentResolver cr = context.getContentResolver();
+                                Cursor c = cr.query(Telephony.Sms.CONTENT_URI, null, null, null, null);
+                            */
 
                             if (!cursor.moveToFirst()) {
                                 break; // nothing more to delete

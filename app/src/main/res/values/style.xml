@@ -7,4 +7,11 @@
         <item name="android:textColorHint">@color/secondary_hint</item>
     </style>
 
+    <style name="BaseAppDarkTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+<!--        <item name="colorPrimary">@color/colorPrimary</item>-->
+<!--        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+        <!-- Customize your theme here. -->
+    </style>
+
 </resources>

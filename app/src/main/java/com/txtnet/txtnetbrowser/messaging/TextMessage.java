@@ -34,6 +34,7 @@ public class TextMessage {
     private int howManyAdded = 0;
     public String[] textBuffer = null;
     public static String url;
+    //public boolean isUserRequest = false;
     Context context;
     /**
      * Constructs a new TextMessage object that allows for the use of a String buffer to represent a text message.
@@ -70,15 +71,15 @@ public class TextMessage {
 
 
             //we have them all! render the page.
-            String reassembled = "";
+            StringBuilder reassembled = new StringBuilder();
             for(String value : textBuffer){
                 if(value == null){
                     throw new Exception("One of the strings is missing.");
                 }
-                reassembled += value;
+                reassembled.append(value);
             }
             //  Log.d("reassembled", reassembled);
-            String[] reassembledAsArray = Base10Conversions.explode(reassembled);
+            String[] reassembledAsArray = Base10Conversions.explode(reassembled.toString());
             //  Log.d("reassembledasarray", Arrays.toString(reassembledAsArray));
             int[] nums = new int[reassembledAsArray.length];
             for(int i = 0; i < nums.length; i++){
@@ -154,7 +155,7 @@ public class TextMessage {
         Iterator<Integer> iterator = integers.iterator();
         for (int i = 0; i < ret.length; i++)
         {
-            ret[i] = iterator.next().intValue();
+            ret[i] = iterator.next();
         }
         return ret;
     }
