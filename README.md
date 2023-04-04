@@ -28,8 +28,8 @@ TxtNet Server uses your primary mobile number associated with the active carrier
 Please note that this feature is still in early stages of development and likely has many issues. Please submit issue reports for any problems you encounter.
 For Android 4.4-6.0, you will need to run adb commands one time as specified in the app. For Android 6.0-10.0, you may also use Skizuku, but a PC will still be required once. For Android 11+, no PC is required to activate the server using [Shizuku](https://shizuku.rikka.app/guide/setup/).
 
-<sub>Server Installation (Deprecated)
-
+<sub>Server Installation (Deprecated)</sub>
+<sub>
 The current source code is pointed at my own server, using a Twilio API with credits I have purchased. If you would like to run your own server, follow the instructions below:
 1. Register for an account at [Twilio](https://twilio.com/), purchase a toll-free number with SMS capability, and purchase credits. (This project will not work with Twilio free accounts)
 2. Create a Twilio application for the number.
