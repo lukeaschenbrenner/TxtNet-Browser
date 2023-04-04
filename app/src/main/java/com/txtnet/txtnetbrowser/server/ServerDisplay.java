@@ -2,59 +2,42 @@ package com.txtnet.txtnetbrowser.server;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.role.RoleManager;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.ApplicationInfo;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.provider.Settings;
-import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.provider.BlockedNumberContract;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-
-import com.google.android.material.snackbar.Snackbar;
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
 
 
 import com.txtnet.txtnetbrowser.Constants;
 import com.txtnet.txtnetbrowser.R;
-import com.txtnet.txtnetbrowser.SMSActivities;
-import com.txtnet.txtnetbrowser.UnsupportedBlockActivity;
-import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
+import com.txtnet.txtnetbrowser.blockingactivities.ShizukuIncompatible;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
@@ -65,6 +48,9 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
     public static final int OPEN_NEW_ACTIVITY = 123456;
     public final static String CHANNEL_ID = "SERVER_NOTIFS";
     private final static int SHIZUKU_CODE = 31;
+    EditText maxOutgoingSmsPerRequest, maxWebViews;
+    SharedPreferences preferences;
+
 
 
     @Override
@@ -101,69 +87,95 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
         }
 
+
         createNotificationChannel(this);
 
-        Button button1 = (Button) findViewById(R.id.startServiceButton);
-        Button button2 = (Button) findViewById(R.id.endServiceButton);
+        SwitchCompat serverSwitch = (SwitchCompat) findViewById(R.id.startServiceSwitch);
+//        Button button1 = (Button) findViewById(R.id.startServiceButton);
+//        Button button2 = (Button) findViewById(R.id.endServiceButton);
 
         final TextView tv = (TextView) findViewById(R.id.serverStatusText);
         if(TxtNetServerService.isRunning){
             tv.setText(R.string.server_started);
+            serverSwitch.setChecked(true);
         }else{
             tv.setText(R.string.server_stopped);
+            serverSwitch.setChecked(false);
+
         }
 
-        button1.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("PrivateApi")
-            public void onClick(View v) {
+        maxOutgoingSmsPerRequest = (EditText) findViewById(R.id.maxOutgoingSmsPerRequest);
+        maxWebViews = (EditText) findViewById(R.id.maxWebViews);
+        preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
-                // It turns out that SMS_OUTGOING_CHECK_MAX_COUNT and SMS_OUTGOING_CHECK_MAX_INTERVAL_MS are no longer secure settings as of 9/14/2012 ( https://cs.android.com/android/_/android/platform/frameworks/opt/telephony/+/3ca3a570c0ad836dc42378e4359dbf28c6ef71db:src/java/com/android/internal/telephony/SmsUsageMonitor.java;l=258;bpv=1;bpt=0;drc=4658a1a8c23111d5cc89feb040ce547a7b65dfb0;dlc=c38bb60d867c5d61d90b7179a9ed2b2d1848124f )
-                //     still, just the WRITE_SETTINGS permission DOES NOT allow us to write global settings.
-                if(ContextCompat.checkSelfPermission(v.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED)
-                {
-                    Log.e("perm", "No permission!");
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                        boolean isGranted;
-                        if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
-                            isGranted = checkSelfPermission(ShizukuProvider.PERMISSION) == PackageManager.PERMISSION_GRANTED;
-                        } else {
-                            isGranted = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
-                        }
-                        if (!isGranted) {
-                            Log.e("rationale_shouldshow", String.valueOf(Shizuku.shouldShowRequestPermissionRationale()));
+        maxWebViews.setText(String.valueOf(preferences.getInt("maxWebViews", 5)));
+        maxOutgoingSmsPerRequest.setText(String.valueOf(preferences.getInt("maxOutgoingSmsPerRequest", 100)));
 
+
+
+        serverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(b && !TxtNetServerService.isRunning){
+                    // start service
+                    // It turns out that SMS_OUTGOING_CHECK_MAX_COUNT and SMS_OUTGOING_CHECK_MAX_INTERVAL_MS are no longer secure settings as of 9/14/2012 ( https://cs.android.com/android/_/android/platform/frameworks/opt/telephony/+/3ca3a570c0ad836dc42378e4359dbf28c6ef71db:src/java/com/android/internal/telephony/SmsUsageMonitor.java;l=258;bpv=1;bpt=0;drc=4658a1a8c23111d5cc89feb040ce547a7b65dfb0;dlc=c38bb60d867c5d61d90b7179a9ed2b2d1848124f )
+                    //     still, just the WRITE_SETTINGS permission DOES NOT allow us to write global settings.
+                    if(ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED)
+                    {
+                        Log.e("perm", "No permission!");
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                            boolean isGranted;
                             if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
-                                requestPermissions(new String[]{ShizukuProvider.PERMISSION}, SHIZUKU_CODE);
+                                isGranted = checkSelfPermission(ShizukuProvider.PERMISSION) == PackageManager.PERMISSION_GRANTED;
                             } else {
-                                Shizuku.requestPermission(31);
+                                isGranted = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
                             }
-                        }else{
+                            if (!isGranted) {
+                                Log.e("rationale_shouldshow", String.valueOf(Shizuku.shouldShowRequestPermissionRationale()));
+
+                                if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
+                                    requestPermissions(new String[]{ShizukuProvider.PERMISSION}, SHIZUKU_CODE);
+                                } else {
+                                    Shizuku.requestPermission(31);
+                                }
+                            }else{
+                                //grantPermissions();
+                                //we should only run this once, or whenever we detect that the values were not set!
+
+                            }
+                        } else {
+                            boolean didAcceptAdb = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE).getBoolean("outdatedAdbAccepted", false);
+                            if(!didAcceptAdb){
+                                Toast.makeText(compoundButton.getContext(), "TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)", Toast.LENGTH_LONG).show();
+                                Intent intent = new Intent(compoundButton.getContext(), ShizukuIncompatible.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                ActivityCompat.finishAffinity(ServerDisplay.this);
+                            }
+
+
+                            //TODO: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)
+                        }
+                    }
+                    else{ // permission granted, let's roll
+                        if(ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
                             grantPermissions();
                         }
-                    } else {
-                        Toast.makeText(v.getContext(), "TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)", Toast.LENGTH_LONG).show();
-                        //TODO: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)
+
+                        //    Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
+                        //    intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+
+                        //   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        //       v.getContext().getApplicationContext().startForegroundService(intent);
+                        //   }else{
+                        //       v.getContext().getApplicationContext().startService(intent);
+                        //   }
+
+
+                        doBindService();
+                        final TextView tv = (TextView) findViewById(R.id.serverStatusText);
+                        tv.setText(R.string.server_started);
                     }
-                }
-                else{ // permission granted, let's roll
-                    if(ContextCompat.checkSelfPermission(v.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
-                        grantPermissions();
-                    }
-
-                //    Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
-                //    intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
-
-                 //   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                 //       v.getContext().getApplicationContext().startForegroundService(intent);
-                 //   }else{
-                 //       v.getContext().getApplicationContext().startService(intent);
-                 //   }
-
-
-                    doBindService();
-                    final TextView tv = (TextView) findViewById(R.id.serverStatusText);
-                    tv.setText(R.string.server_started);
-                }
 
 
 
@@ -189,19 +201,32 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
 
 
 
-            }
+                }else if(!b && TxtNetServerService.isRunning){
+                    //stop service
 
-        });
-        button2.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), TxtNetServerService.class);
-                intent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
-                v.getContext().getApplicationContext().startService(intent);
-                doUnbindService();
-                final TextView tv = (TextView) findViewById(R.id.serverStatusText);
-                tv.setText(R.string.server_stopped);
+                    Intent intent = new Intent(compoundButton.getContext(), TxtNetServerService.class);
+                    intent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
+                    compoundButton.getContext().getApplicationContext().startService(intent);
+                    doUnbindService();
+                    final TextView tv = (TextView) findViewById(R.id.serverStatusText);
+                    tv.setText(R.string.server_stopped);
+                }
             }
         });
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @SuppressLint("PrivateApi")
+//            public void onClick(View v) {
+//
+//
+//
+//            }
+//
+//        });
+//        button2.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//
+//            }
+//        });
 
     }
 
@@ -353,8 +378,17 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         // implementation that we know will be running in our own process
         // (and thus won't be supporting component replacement by other
         // applications).
+        SharedPreferences.Editor edit = preferences.edit();
+        edit.putInt("maxWebViews", Integer.parseInt(maxWebViews.getText().toString()));
+        edit.putInt("maxOutgoingSmsPerRequest", Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
+        edit.apply();
+
         Intent intent = new Intent(ServerDisplay.this, TxtNetServerService.class);
         intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+        intent.putExtra("maxWebViews", Integer.parseInt(maxWebViews.getText().toString()));
+        Log.i("max", "maxwebviews set to " + Integer.parseInt(maxWebViews.getText().toString()));
+        intent.putExtra("maxOutgoingSmsPerRequest", Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
+        Log.i("max", "maxOutgoingSmsPerRequest set to " + Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
 
         if (bindService(intent,
                 mConnection, Context.BIND_AUTO_CREATE)) {

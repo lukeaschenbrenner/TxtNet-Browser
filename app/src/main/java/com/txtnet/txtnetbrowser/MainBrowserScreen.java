@@ -42,8 +42,8 @@ import android.widget.Toast;
 
 //import com.aayushatharva.brotli4j.Brotli4jLoader;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import com.google.android.material.snackbar.Snackbar;
 import com.txtnet.brotli4droid.Brotli4jLoader;
+import com.txtnet.txtnetbrowser.blockingactivities.UnsupportedDeviceActivity;
 import com.txtnet.txtnetbrowser.database.DBInstance;
 import com.txtnet.txtnetbrowser.messaging.TextMessage;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
@@ -77,8 +77,8 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
      * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
      *
-     * TODO Before beta launch:
-     * - Perms popups and tutorial for shizuku
+     * TODO Before alpha launch:
+     * - Edit readme with new news sites
      *
      */
 
@@ -360,7 +360,7 @@ public class MainBrowserScreen extends AppCompatActivity {
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainBrowserScreen.this, "WARNING: The stop button is not fully functional. Please wait a minute for all messages to send.", Toast.LENGTH_SHORT).show();
                 webView.stopLoading();
                 assert TextMessageHandler.getInstance() != null;
                 TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
@@ -448,6 +448,7 @@ public class MainBrowserScreen extends AppCompatActivity {
             intent.putExtra("needDefault", true);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
+            ActivityCompat.finishAffinity(MainBrowserScreen.this);
             //make Server Picker view the root view until a default phone number is selected
         }
     }
@@ -494,38 +495,38 @@ public class MainBrowserScreen extends AppCompatActivity {
                         Intent intent = new Intent(v.getContext(), DefaultSMSActivity.class);
                         startActivity(intent);
                         return true;
-                    case R.id.selectPhoneNumber:
-                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), "0");
-                        //String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), null);
-
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                        builder.setTitle("Phone Number (no dashes)");
-                        View viewInflated = LayoutInflater.from(v.getContext()).inflate(R.layout.phone_select_dialog, (ViewGroup) v.getParent(), false);
-                        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
-                        input.setText(phoneNumber);
-                        builder.setView(viewInflated);
-
-
-                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                SharedPreferences.Editor edit = preferences.edit();
-                                edit.putString(getString(R.string.phone_number), input.getText().toString());
-                                edit.apply();
-
-                            }
-                        });
-                        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        builder.show();
-                        return true;
+//                    case R.id.selectPhoneNumber:
+//                        String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), "0");
+//                        //String phoneNumber = preferences.getString(getResources().getString(R.string.phone_number), null);
+//
+//
+//                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+//                        builder.setTitle("Phone Number (no dashes)");
+//                        View viewInflated = LayoutInflater.from(v.getContext()).inflate(R.layout.phone_select_dialog, (ViewGroup) v.getParent(), false);
+//                        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
+//                        input.setText(phoneNumber);
+//                        builder.setView(viewInflated);
+//
+//
+//                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.dismiss();
+//                                SharedPreferences.Editor edit = preferences.edit();
+//                                edit.putString(getString(R.string.phone_number), input.getText().toString());
+//                                edit.apply();
+//
+//                            }
+//                        });
+//                        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.cancel();
+//                            }
+//                        });
+//
+//                        builder.show();
+//                        return true;
                     case R.id.TxtNetServer:
                         Intent intent2 = new Intent(v.getContext(), ServerDisplay.class);
                         startActivity(intent2);

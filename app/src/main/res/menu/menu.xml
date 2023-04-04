@@ -7,17 +7,17 @@
         android:icon="@drawable/stop_icon"
         android:title="Options"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/selectPhoneNumber"
-        android:icon="@drawable/home_icon"
-        android:title="Change Server Phone Number"
-        />
-    <item android:id="@+id/TxtNetServer"
-        android:icon="@drawable/home_icon"
-        android:title="TxtNet Server"
-        />
+<!--    <item android:id="@+id/selectPhoneNumber"-->
+<!--        android:icon="@drawable/home_icon"-->
+<!--        android:title="Change Server Phone Number"-->
+<!--        />-->
     <item android:id="@+id/serverPhoneSelect"
         android:icon="@drawable/home_icon"
         android:title="Select Server Phone Number"
+        />
+    <item android:id="@+id/TxtNetServer"
+        android:icon="@drawable/home_icon"
+        android:title="TxtNet Server Hosting"
         />
 
 

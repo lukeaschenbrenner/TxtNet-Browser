@@ -1,4 +1,4 @@
-package com.txtnet.txtnetbrowser;
+package com.txtnet.txtnetbrowser.blockingactivities;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -7,6 +7,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.txtnet.txtnetbrowser.R;
+import com.txtnet.txtnetbrowser.SMSActivities;
 
 public class UnsupportedBlockActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {

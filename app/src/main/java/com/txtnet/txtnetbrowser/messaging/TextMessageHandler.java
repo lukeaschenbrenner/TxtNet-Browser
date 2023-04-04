@@ -344,7 +344,7 @@ public class TextMessageHandler {
                             //if the message ends up being a new request, we need to clear out the previous arraylist inside of the SmsSocket.
                             Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                         }else{
-                            TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance));
+                            TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance, TxtNetServerService.MAX_SMS_PER_REQUEST));
                             //TODO: Fix the above code to avoid static object reference(??)
                             Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                             //attempt to parse it as if it was a user request. if parsing fails, stop.

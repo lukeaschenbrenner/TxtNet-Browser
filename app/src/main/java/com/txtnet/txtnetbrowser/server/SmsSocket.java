@@ -55,11 +55,12 @@ public class SmsSocket {
     private Phonenumber.PhoneNumber phoneNumber;
     private AtomicBoolean shouldSend = new AtomicBoolean(true);
     private TxtNetServerService service = null;
-
-    public SmsSocket(Phonenumber.PhoneNumber number, TxtNetServerService service) {
+    private int MAX_SMS_PER_REQUEST;
+    public SmsSocket(Phonenumber.PhoneNumber number, TxtNetServerService service, int maxSmsPerRequest) {
         this();
         this.phoneNumber = number;
         this.service = service;
+        MAX_SMS_PER_REQUEST = maxSmsPerRequest;
     }
     public SmsSocket(){
         inputRequestBuffer = new ArrayList<>();
@@ -114,16 +115,16 @@ public class SmsSocket {
 //        // ************************
 
 
-        Log.i(TAG, "HTMLBYTES: " + Arrays.toString(htmlBytes));
+        //Log.i(TAG, "HTMLBYTES: " + Arrays.toString(htmlBytes));
         int[] htmlBytesAsIntArray = new int[htmlBytes.length];
         for(int i = 0; i < htmlBytes.length; i++){
             htmlBytesAsIntArray[i] = (htmlBytes[i] & 0xFF);
         }
-        Log.i(TAG, Arrays.toString(htmlBytesAsIntArray));
+        //Log.i(TAG, Arrays.toString(htmlBytesAsIntArray));
 
         int[] encodedSms = smsEncoder.encode_raw(256, 114, 134, 158, htmlBytesAsIntArray);
         StringBuilder smsEncodedOutputBuilder = new StringBuilder();
-        Log.i(TAG, Arrays.toString(encodedSms));
+        //Log.i(TAG, Arrays.toString(encodedSms));
         for(int value : encodedSms){
             smsEncodedOutputBuilder.append(SYMBOL_TABLE[value]);
         }
@@ -148,6 +149,11 @@ public class SmsSocket {
         }
 
         int howManyTextsToExpect = (smsQueue.size());
+
+        if(howManyTextsToExpect > MAX_SMS_PER_REQUEST){
+            Log.w(TAG, "Request made with SMS count > MAX_SMS_PER_REQUEST");
+            return;
+        }
 
         SmsManager sms = SmsManager.getDefault();
 

@@ -168,7 +168,8 @@
                     app:layout_constraintEnd_toStartOf="@id/settingsbutton"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintStart_toEndOf="@id/guideline3"
-                    app:layout_constraintTop_toTopOf="@+id/edittextborder" />
+                    app:layout_constraintTop_toTopOf="@+id/edittextborder"
+                    android:maxWidth="50dp"/>
                 <!-- We should make a max dp size for this button so it looks ok in landscape !-->
 
                 <ImageButton
@@ -178,6 +179,8 @@
                     android:background="?android:selectableItemBackground"
                     android:contentDescription="@string/descr_overflow_button"
                     android:onClick="showPopup"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginStart="5dp"
 
                     android:src="@drawable/ic_overflow_holo_dark"
                     app:layout_constraintBottom_toBottomOf="@+id/go_button"

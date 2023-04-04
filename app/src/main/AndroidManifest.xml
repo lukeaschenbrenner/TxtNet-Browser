@@ -34,6 +34,24 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ShizukuIncompatible"
+            android:exported="false"
+            android:label="@string/title_activity_shizuku_incompatible"
+            android:theme="@style/Theme.TxtNetBrowser.NoActionBar">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".ShizukuIncompatibleActivity"
+            android:exported="false"
+            android:label="@string/title_activity_shizuku_incompatible"
+            android:theme="@style/Theme.TxtNetBrowser">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".phonenumbers.NewServerActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat">
@@ -76,7 +94,7 @@
             android:label="App Introduction"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".UnsupportedDeviceActivity"
+            android:name=".blockingactivities.UnsupportedDeviceActivity"
             android:exported="false"
             android:label="Unsupported Device"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -86,7 +104,7 @@
             android:label="Server Display"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".UnsupportedBlockActivity"
+            android:name=".blockingactivities.UnsupportedBlockActivity"
             android:exported="false"
             android:label="Unsupported Block Operation"
             android:theme="@style/AppTheme.NoActionBar" />

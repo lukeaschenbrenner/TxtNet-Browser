@@ -92,7 +92,8 @@ import org.jsoup.select.NodeVisitor;
 public class TxtNetServerService extends Service {
     private NotificationManagerCompat notificationManager;
     private final int NOTIFICATION_ID = 43;
-    private final int WEBVIEWS_LIMIT = 5;
+    private int WEBVIEWS_LIMIT = 5;
+    public static int MAX_SMS_PER_REQUEST;
    // private final int WEBVIEWS_LIMIT = 2; // use for testing!
 
     public ServiceHandler serviceHandler;
@@ -112,6 +113,68 @@ public class TxtNetServerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        int tempNum = intent.getIntExtra("maxWebViews", 5);
+        if(tempNum < 100){
+            WEBVIEWS_LIMIT = tempNum;
+        }
+        MAX_SMS_PER_REQUEST = intent.getIntExtra("maxOutgoingSmsPerRequest", 100);
+
+        LinearLayout view = new LinearLayout(this);
+        view.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+
+        //
+        //////// Populate webviews
+        //
+        Log.i(TAG, "Populating webviews...");
+        for(int i = 0; i < WEBVIEWS_LIMIT; i++) {
+            webViews.add(new WebView(this));
+            webViewBusynessMap.put(webViews.get(i), new AtomicBoolean(false));
+            webViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+            view.addView(webViews.get(i));
+
+            webViews.get(i).measure(412, 824); // Reference viewport size of Pixel 4 XL
+            webViews.get(i).layout(0, 0, 412, 824);
+            WebSettings ws = webViews.get(i).getSettings();
+            ws.setJavaScriptEnabled(true);
+            ws.setAllowFileAccessFromFileURLs(true);
+            ws.setSaveFormData(false);
+
+            int finalI = i;
+            webViews.get(i).post(new Runnable() { // careful, this runs on main thread!
+                @Override
+                public void run() {
+                    webViews.get(finalI).setWebViewClient(new ServerWebViewClient(TxtNetServerService.this));
+                }
+            });
+            //TODO: Add requesting permission to overlay
+
+/*
+In activity:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 0);
+            }
+        }
+ */
+
+
+//        wv.loadUrl("http://google.com");
+        }
+        // Adapted from https://stackoverflow.com/questions/18865035/android-using-webview-outside-an-activity-context
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, Build.VERSION.SDK_INT < Build.VERSION_CODES.O ?
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY :
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.TOP | Gravity.LEFT;
+        params.x = 0;
+        params.y = 0;
+        params.width = 0;
+        params.height = 0;
+        windowManager.addView(view,params);
+        //    surfaceView.getHolder().addCallback(this);
+        Log.i(TAG, WEBVIEWS_LIMIT + " Views added.");
+
         return binder;
     }
 
@@ -215,7 +278,7 @@ public class TxtNetServerService extends Service {
 
         // Tell the user we stopped.
        // Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "OnDestroy called!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Server stopped!", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -271,21 +334,6 @@ public class TxtNetServerService extends Service {
         serviceHandler = new ServiceHandler(serviceLooper);
 
 
-
-        // Adapted from https://stackoverflow.com/questions/18865035/android-using-webview-outside-an-activity-context
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, Build.VERSION.SDK_INT < Build.VERSION_CODES.O ?
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY :
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 0;
-        params.y = 0;
-        params.width = 0;
-        params.height = 0;
-
-        LinearLayout view = new LinearLayout(this);
-        view.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
-
         CookieManager cookieManager = CookieManager.getInstance();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             cookieManager.removeAllCookies(null); // could make a looper callback to handle a message indicating how many cookies were removed, but we don't care
@@ -294,48 +342,6 @@ public class TxtNetServerService extends Service {
         }
         cookieManager.setAcceptCookie(false);
 
-        //
-        //////// Populate webviews
-        //
-        Log.i(TAG, "Populating webviews...");
-        for(int i = 0; i < WEBVIEWS_LIMIT; i++) {
-            webViews.add(new WebView(this));
-            webViewBusynessMap.put(webViews.get(i), new AtomicBoolean(false));
-            webViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-            view.addView(webViews.get(i));
-
-            webViews.get(i).measure(412, 824); // Reference viewport size of Pixel 4 XL
-            webViews.get(i).layout(0, 0, 412, 824);
-            WebSettings ws = webViews.get(i).getSettings();
-            ws.setJavaScriptEnabled(true);
-            ws.setAllowFileAccessFromFileURLs(true);
-            ws.setSaveFormData(false);
-
-            int finalI = i;
-            webViews.get(i).post(new Runnable() { // careful, this runs on main thread!
-                @Override
-                public void run() {
-                    webViews.get(finalI).setWebViewClient(new ServerWebViewClient(TxtNetServerService.this));
-                }
-            });
-            //TODO: Add requesting permission to overlay
-
-/*
-In activity:
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, 0);
-            }
-        }
- */
-
-
-//        wv.loadUrl("http://google.com");
-        }
-        windowManager.addView(view,params);
-                //    surfaceView.getHolder().addCallback(this);
-        Log.i(TAG, "Views added.");
 
         }
 
@@ -364,7 +370,7 @@ In activity:
             if(smsDataBase.containsKey(number)){
                 sock = smsDataBase.get(number);
             }else{
-                sock = new SmsSocket(number, TxtNetServerService.this);
+                sock = new SmsSocket(number, TxtNetServerService.this, MAX_SMS_PER_REQUEST);
                 smsDataBase.put(number, sock);
             }
 
@@ -508,7 +514,7 @@ In activity:
                         if ("null".equals(html)) {
                             downloadedHTML[0] = "<html>Error: No Content</html>";
                         } else {
-                            Log.i("Early HTML", html);
+                            //Log.i("Early HTML", html);
 
                             String unescaped = html.substring(1, html.length() - 1)  // remove wrapping quotes
                                     .replace("\\\\", "\\")        // unescape \\ -> \

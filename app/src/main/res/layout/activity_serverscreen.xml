@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    >
+<androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageView"
@@ -12,7 +18,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline4"
-        app:srcCompat="@drawable/ic_baseline_error_24" />
+        app:srcCompat="@drawable/ic_launcher_icon" />
 
     <TextView
         android:id="@+id/textView2"
@@ -20,7 +26,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="30dp"
         android:paddingEnd="30dp"
-        android:text="Start and stop the service here"
+        android:text="TxtNet Server Management Panel\n\nNOTE: You must have set up Shizuku permissions as well as allowed 'Display over other apps' in settings for this to work.\n"
         android:textAlignment="center"
         android:textSize="25sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -49,36 +55,36 @@
         android:paddingEnd="30dp"
         android:text="Status:"
         android:textAlignment="center"
-        android:textSize="32sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
 
         />
 
-    <Button
-        android:id="@+id/startServiceButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Service"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"
-        android:textSize="20dp"
-        />
+    <!--    <Button-->
+    <!--        android:id="@+id/startServiceButton"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:text="Start Service"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toBottomOf="@+id/textView3"-->
+    <!--        android:textSize="20dp"-->
+    <!--        />-->
 
-    <Button
-        android:id="@+id/endServiceButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="End Service"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/startServiceButton"
-        android:textSize="20dp"
-        />
+    <!--    <Button-->
+    <!--        android:id="@+id/endServiceButton"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:text="End Service"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toBottomOf="@+id/startServiceButton"-->
+    <!--        android:textSize="20dp"-->
+    <!--        />-->
 
     <TextView
         android:id="@+id/serverStatusText"
@@ -87,9 +93,72 @@
         android:layout_marginTop="10dp"
         android:text="@string/server_stopped"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/startServiceButton"
+        app:layout_constraintBottom_toTopOf="@+id/startServiceSwitch"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3"
         app:layout_constraintVertical_bias="0.0" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/startServiceSwitch"
+        android:layout_width="237dp"
+        android:layout_height="62dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:text="@string/start_service_string"
+        android:textOff="Off"
+        android:textOn="On"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </androidx.appcompat.widget.SwitchCompat>
+
+    <EditText
+        android:id="@+id/maxWebViews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:minHeight="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="49dp"
+        android:text="Number of WebViews"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/startServiceSwitch" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Max outgoing SMS per request"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/maxWebViews" />
+
+    <EditText
+        android:id="@+id/maxOutgoingSmsPerRequest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textView7"
+        app:layout_constraintVertical_bias="0.07999998" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

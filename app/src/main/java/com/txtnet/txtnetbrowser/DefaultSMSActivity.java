@@ -1,7 +1,6 @@
 package com.txtnet.txtnetbrowser;
 
 
-import android.app.Activity;
 import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -28,8 +27,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
-import java.util.logging.Logger;
-
+import com.txtnet.txtnetbrowser.blockingactivities.UnsupportedBlockActivity;
 import com.txtnet.txtnetbrowser.messaging.TextMessageHandler;
 
 public class DefaultSMSActivity extends AppCompatActivity {
