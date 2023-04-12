@@ -139,7 +139,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                                     Shizuku.requestPermission(31);
                                 }
                             }else{
-                                //grantPermissions();
+                                grantPermissions();
                                 //we should only run this once, or whenever we detect that the values were not set!
 
                             }

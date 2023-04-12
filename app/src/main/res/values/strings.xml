@@ -136,4 +136,5 @@
         Once both commands have been run, click the button below to continue.
         </string>
     <string name="shizuku_incompatible_continue">Restart App</string>
+    <string name="request_sms_outgoing_exceeded_error">Error: Request Exceeded Max SMS Limit</string>
 </resources>

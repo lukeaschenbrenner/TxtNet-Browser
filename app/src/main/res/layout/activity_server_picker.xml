@@ -12,12 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/app_bar_height"
         android:fitsSystemWindows="true"
-        android:theme="@style/Theme.TxtNetBrowser.AppBarOverlay"
+        android:theme="@style/AppTheme.NoActionBarWhiteText"
         >
-
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/toolbar_layout"
-            style="@style/Widget.MaterialComponents.Toolbar.Primary"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
@@ -27,7 +25,8 @@
             app:title="Select a phone number"
             app:expandedTitleTextAppearance="@style/TextAppearance.Material3.ActionBar.Title"
             app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.ActionBar.Title"
-            >
+            ><!--             style="@style/Widget.MaterialComponents.Toolbar.Primary" -->
+
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"

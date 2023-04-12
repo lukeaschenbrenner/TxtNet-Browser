@@ -4,16 +4,16 @@ buildscript {
         google()
         mavenCentral()
     }
-
+    ext.kotlin_version = '1.6.0'
 }
 
 plugins {
     id 'com.android.application' version '7.3.0' apply false
     id 'com.android.library' version '7.3.0' apply false
-    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
 
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
+//task clean(type: Delete) {
+//    delete rootProject.buildDir
+//}

@@ -78,7 +78,8 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
      *
      * TODO Before alpha launch:
-     * - Edit readme with new news sites
+     * - Add a CDMA network compatibility mode to remove all Greek symbols. How to communicate this?
+     *      -- make a database of CDMA-only numbers and use an initial request text: "TxtNet vXXX charset basic"/"TxtNet vXXX charset full"
      *
      */
 

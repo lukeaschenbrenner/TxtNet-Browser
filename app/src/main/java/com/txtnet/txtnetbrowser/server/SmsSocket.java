@@ -150,11 +150,6 @@ public class SmsSocket {
 
         int howManyTextsToExpect = (smsQueue.size());
 
-        if(howManyTextsToExpect > MAX_SMS_PER_REQUEST){
-            Log.w(TAG, "Request made with SMS count > MAX_SMS_PER_REQUEST");
-            return;
-        }
-
         SmsManager sms = SmsManager.getDefault();
 
         String outputNumber = "";
@@ -162,6 +157,13 @@ public class SmsSocket {
             outputNumber += phoneNumber.getCountryCode();
         }
         outputNumber += phoneNumber.getNationalNumber();
+
+        if(howManyTextsToExpect > MAX_SMS_PER_REQUEST){
+            Log.w(TAG, "Request made with SMS count > MAX_SMS_PER_REQUEST");
+            sms.sendTextMessage(outputNumber, null, service.getString(R.string.request_sms_outgoing_exceeded_error), null, null);
+            return;
+        }
+
 
         sms.sendTextMessage(outputNumber, null, howManyTextsToExpect + " Process starting", null, null);
         try {
