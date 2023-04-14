@@ -23,9 +23,9 @@ public class ServerViewHolder extends RecyclerView.ViewHolder{
     public void bind(String text, boolean isDefault) {
 
         serverItemView.setText(text);
-     //   if(isDefault){
-     //       selectedBg();
-     //   }
+        if(isDefault){
+            selectedBg();
+        }
     }
 
     static ServerViewHolder create(ViewGroup parent) {

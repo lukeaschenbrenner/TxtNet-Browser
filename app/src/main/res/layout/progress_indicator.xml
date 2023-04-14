@@ -1,21 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:clickable="false"
     android:focusable="true"
     android:background="#B0FFFFFF"
     android:id="@+id/progress_indicator"
-    android:visibility="gone"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_gravity="center"
+    android:visibility="gone"
+    >
+<!--     android:visibility="gone" -->
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".5" />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:contentDescription="Website loading progress"
         android:id="@+id/progress_circular"
-        android:indeterminate="false"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        app:indicatorSize="90dp"
+        android:contentDescription="Website loading progress"
+        android:indeterminate="false"
+        android:theme="@style/Theme.AppCompat"
         app:indicatorColor="@color/colorPrimary"
-        />
-</FrameLayout>
+        app:indicatorSize="90dp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/loadProgressTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_marginTop="10dp"
+        android:background="#FFFFFF"
+        android:text="0/0"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progress_circular">
+
+    </TextView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

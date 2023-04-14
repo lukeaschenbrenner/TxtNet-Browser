@@ -203,24 +203,34 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.appcompat.widget.Toolbar>
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipe"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1.9">
 
 
-            <com.txtnet.txtnetbrowser.webview.MyWebView
-                android:id="@+id/web_view"
+            <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_weight="1.9">
+                <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                    android:id="@+id/swipe"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    >
+                <com.txtnet.txtnetbrowser.webview.MyWebView
+                    android:id="@+id/web_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                </com.txtnet.txtnetbrowser.webview.MyWebView>
+
+                </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
                 <include layout="@layout/progress_indicator"/>
 
-            </com.txtnet.txtnetbrowser.webview.MyWebView>
+
+            </FrameLayout>
 
 
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
 
 
     </LinearLayout>

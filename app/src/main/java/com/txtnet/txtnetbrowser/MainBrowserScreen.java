@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -37,6 +38,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,16 +70,13 @@ import java.util.logging.Logger;
 public class MainBrowserScreen extends AppCompatActivity {
     /**
      * TODO: Add custom CSS files for commonly visited websites to save on space
-     * TODO: maybe include app version in SMS sending so if the server changes we can accommodate
      * TODO: allow submitting basic web forms as post request
      * TODO: Be able to load previously requested web pages by reading messages from number, no default sms perms required
-     * TODO: CHECK MEDIUM ARTICLE FOR GETTING SMS PERMISSIONS, IMPLEMENT THE DIALOG BOX SYSTEM?
      *
-     * TODO 2/17/23: Replace loading screens from new WebView pages to an actual progress screen, to avoid spamming webview queue and allow for easy back button
      * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
      * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
      *
-     * TODO Before alpha launch:
+     * TODO Before beta launch:
      * - Add a CDMA network compatibility mode to remove all Greek symbols. How to communicate this?
      *      -- make a database of CDMA-only numbers and use an initial request text: "TxtNet vXXX charset basic"/"TxtNet vXXX charset full"
      *
@@ -87,7 +86,8 @@ public class MainBrowserScreen extends AppCompatActivity {
     public static SwipeRefreshLayout swipe;
     EditText urlEditText;
     public static ProgressBar progressBar;
-    public static FrameLayout progressIndicatorBg;
+    public static TextView loadProgressTV;
+    public static ConstraintLayout progressIndicatorBg;
     public static CircularProgressIndicator progressCircle;
     ImageButton back, forward, stop, refresh, homeButton, goButton;
     private static String[] permissions = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_PHONE_STATE};
@@ -178,10 +178,12 @@ public class MainBrowserScreen extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
             progressCircle = (CircularProgressIndicator) findViewById(R.id.progress_circular);
             progressCircle.setVisibility(View.GONE);
+            loadProgressTV = (TextView) findViewById(R.id.loadProgressTextView);
+            loadProgressTV.setVisibility(TextView.GONE);
             webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
-            progressIndicatorBg = (FrameLayout) findViewById(R.id.progress_indicator);
+            progressIndicatorBg = (ConstraintLayout) findViewById(R.id.progress_indicator);
 
       //      mGetContent = registerForActivityResult(new EncodeFile(getApplicationContext()), new ActivityResultCallback<Uri>() {
       //          @Override
@@ -255,12 +257,20 @@ public class MainBrowserScreen extends AppCompatActivity {
     public void startWebView(String url) {
 
         registerForContextMenu(webView);
-
+        Handler mHandler = new Handler();
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (webView.getUrl() != null) {
-                    loadUrl(TextMessage.url);
+                Log.i("MainActivity", "refresh page: " + webView.getUrl());
+                if (TextMessage.url != null) {
+                    loadUrl(webView.getUrl());
+                }else{
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipe.setRefreshing(false);
+                        }
+                    }, 500);
                 }
             }
         });
@@ -373,7 +383,7 @@ public class MainBrowserScreen extends AppCompatActivity {
                         TextMessageHandler.getInstance().sendTextMessage("unstop");
                     }
                 }, 5000);
-
+                swipe.setRefreshing(false);
             }
         });
 
@@ -392,6 +402,14 @@ public class MainBrowserScreen extends AppCompatActivity {
                 //urlEditText.setText(url);
 
                 //TextMessageHandler.getInstance().sendTextMessage(urlEditText.getText().toString());
+            }
+        });
+        urlEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    hideKeyboard(MainBrowserScreen.this);
+                }
             }
         });
 
@@ -582,26 +600,32 @@ public class MainBrowserScreen extends AppCompatActivity {
         progressBar.setMax(total);
         progressBar.setProgress(newProgress);
         progressCircle.setProgress(newProgress);
+        loadProgressTV.setText(newProgress + "/" + total);
 
         if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {
             progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
             progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
+            loadProgressTV.setVisibility(TextView.VISIBLE);
         }
         if (newProgress >= total) {
             progressCircle.setVisibility(CircularProgressIndicator.GONE);
             progressBar.setVisibility(ProgressBar.GONE);
             progressIndicatorBg.setVisibility(View.GONE);
+            loadProgressTV.setVisibility(TextView.GONE);
+
 
             swipe.setRefreshing(false);
         } else {
             progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
             progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
+            loadProgressTV.setVisibility(TextView.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
         }
 
         //webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");
     }
+
 
     public void loadUrl(String urlToLoad){
         hideKeyboard(MainBrowserScreen.this);

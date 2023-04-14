@@ -18,9 +18,9 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission
+   <!-- <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions" /> <!-- Even though it says only system apps can get this permission, that isn't true. -->
+        tools:ignore="ProtectedPermissions" />  Even though it says only system apps can get this permission, that isn't true. -->
     <!-- TODO: We may not need WRITE_SETTINGS since we already have WRITE_SECURE_SETTINGS -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
