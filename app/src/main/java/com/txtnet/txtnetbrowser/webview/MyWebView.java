@@ -11,9 +11,7 @@ import android.widget.ListView;
 import com.txtnet.txtnetbrowser.R;
 
 public class MyWebView extends WebView {
-    //private static final String TAG = "CosmosWebView";
-
-
+    private static final String TAG = "MyWebView";
 
     private WebViewClient webViewClient;
 

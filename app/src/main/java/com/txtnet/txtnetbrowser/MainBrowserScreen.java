@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
@@ -76,9 +77,9 @@ public class MainBrowserScreen extends AppCompatActivity {
      * TODO: Add database query view depending on country code, by contacting a master list number to return a list of known active server phone numbers for the country code
      * TODO: In phone number selector, make a FrameLayout with the textview, ping button, and checkmark icon (maybe the checkmark or x icon pushes the textview to the right?)
      *
-     * TODO Before beta launch:
-     * - Add a CDMA network compatibility mode to remove all Greek symbols. How to communicate this?
-     *      -- make a database of CDMA-only numbers and use an initial request text: "TxtNet vXXX charset basic"/"TxtNet vXXX charset full"
+     * TODO: Add a CDMA network compatibility mode to remove all Greek symbols.
+     *      Q: How to communicate this?
+     *      A: make a database of CDMA-only numbers and use an initial request text: "TxtNet vXXX charset basic"/"TxtNet vXXX charset full"
      *
      */
 
@@ -108,16 +109,20 @@ public class MainBrowserScreen extends AppCompatActivity {
 
     }
 
+    static {
+        if (android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.KITKAT) {
+            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+        }
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
  //       if (savedInstanceState == null) { TODO: See if we should replace this null check?
 
             preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
             mContext = this;
-
 
             boolean isAccessed = preferences.getBoolean(getString(R.string.is_accessed), false);
             if (!isAccessed) {
@@ -127,7 +132,6 @@ public class MainBrowserScreen extends AppCompatActivity {
                 showIntroActivity();
                 return;
             }
-
 
             setContentView(R.layout.activity_main);
 
@@ -158,7 +162,6 @@ public class MainBrowserScreen extends AppCompatActivity {
                 startActivity(intent);
                 ActivityCompat.finishAffinity(MainBrowserScreen.this);
             }
-
 
             boolean isTosAccepted = preferences.getBoolean(getString(R.string.is_tosaccepted), false);
             if (!isTosAccepted) {

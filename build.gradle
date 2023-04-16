@@ -5,6 +5,10 @@ buildscript {
         mavenCentral()
     }
     ext.kotlin_version = '1.8.0'
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
 }
 
 plugins {

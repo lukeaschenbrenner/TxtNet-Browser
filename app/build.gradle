@@ -11,21 +11,49 @@ android {
 
     defaultConfig {
         applicationId "com.txtnet.txtnetbrowser"
-        minSdk 19
+        //minSdk 19
         targetSdk 33
-        versionCode 4
-        versionName "2.0.2"
+        versionCode 210
+        versionName "2.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
+        //vectorDrawables.useSupportLibrary = true
 
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
-    }
 
+    }
+    flavorDimensions "version"
+    productFlavors {
+        dev {
+            // Enable pre-dexing to produce an APK that can be tested on
+            // Android 5.0+ without the time-consuming DEX build processes.
+            //noinspection DevModeObsolete
+            minSdkVersion 21
+            dimension "version"
+            //            applicationIdSuffix ".demo"
+            //            versionNameSuffix "-demo"
+
+        }
+        prod {
+            // The actual minSdkVersion for the production version.
+            minSdkVersion 19
+            dimension "version"
+            buildTypes{
+                debug{
+                    multiDexEnabled true // We are able to avoid multidex in release builds due to resource shrinking and minifying.
+                    dependencies {
+                        def multidex_version = "2.0.1"
+                        implementation "androidx.multidex:multidex:$multidex_version"
+                    }
+                }
+            }
+        }
+    }
     buildTypes {
         release {
             //minifyEnabled false
@@ -33,12 +61,11 @@ android {
             minifyEnabled true
             shrinkResources true
         }
-        debug {
-            //multiDexEnabled true // We are able to avoid multidex in release builds due to resource shrinking and minifying.
-            defaultConfig.minSdkVersion 21 // Allows android to automatically handle dex management with ART
-            defaultConfig.vectorDrawables.useSupportLibrary = true
-            defaultConfig.multiDexEnabled = true
-        }
+//        debug {
+//            //multiDexEnabled true // We are able to avoid multidex in release builds due to resource shrinking and minifying.
+//            //defaultConfig.minSdkVersion 21 // Allows android to automatically handle dex management with ART
+//            defaultConfig.multiDexEnabled = true
+//        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -115,6 +142,13 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata:2.6.1"
     implementation "androidx.lifecycle:lifecycle-common-java8:2.6.1"
 
-
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+            because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+            because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
+        }
+    }
 
 }
