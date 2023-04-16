@@ -34,19 +34,10 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ShizukuIncompatible"
+            android:name=".blockingactivities.ShizukuIncompatible"
             android:exported="false"
             android:label="@string/title_activity_shizuku_incompatible"
             android:theme="@style/Theme.TxtNetBrowser.NoActionBar">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".ShizukuIncompatibleActivity"
-            android:exported="false"
-            android:label="@string/title_activity_shizuku_incompatible"
-            android:theme="@style/Theme.TxtNetBrowser">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

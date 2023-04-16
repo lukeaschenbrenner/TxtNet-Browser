@@ -332,7 +332,6 @@ public class TextMessageHandler {
 //
 //                            }
 //                            /* ----------------------------------*/
-
                             sms.sendTextMessage(outputNumber, null, body, null, null);
 
                         }else if(Message.toString().contains("Website Cancel")){

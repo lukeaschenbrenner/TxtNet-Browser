@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat;
 import com.txtnet.txtnetbrowser.Constants;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.blockingactivities.ShizukuIncompatible;
+import com.txtnet.txtnetbrowser.blockingactivities.UnsupportedDeviceActivity;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
@@ -86,8 +87,10 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         ) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
         }
-
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(this, UnsupportedDeviceActivity.class);
+            startActivity(intent);
+        }
         createNotificationChannel(this);
 
         SwitchCompat serverSwitch = (SwitchCompat) findViewById(R.id.startServiceSwitch);
@@ -120,10 +123,9 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                     // start service
                     // It turns out that SMS_OUTGOING_CHECK_MAX_COUNT and SMS_OUTGOING_CHECK_MAX_INTERVAL_MS are no longer secure settings as of 9/14/2012 ( https://cs.android.com/android/_/android/platform/frameworks/opt/telephony/+/3ca3a570c0ad836dc42378e4359dbf28c6ef71db:src/java/com/android/internal/telephony/SmsUsageMonitor.java;l=258;bpv=1;bpt=0;drc=4658a1a8c23111d5cc89feb040ce547a7b65dfb0;dlc=c38bb60d867c5d61d90b7179a9ed2b2d1848124f )
                     //     still, just the WRITE_SETTINGS permission DOES NOT allow us to write global settings.
-                    if(ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED)
-                    {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
                         Log.e("perm", "No permission!");
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             boolean isGranted;
                             if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
                                 isGranted = checkSelfPermission(ShizukuProvider.PERMISSION) == PackageManager.PERMISSION_GRANTED;
@@ -156,9 +158,10 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
 
                             //TODO: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)
                         }
+                        serverSwitch.setChecked(false);
                     }
-                    else{ // permission granted, let's roll
-                        if(ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
+                    else{ // permission granted on Android 6+, or we assume that Android 4.4-5.1 manually changed settings in adb
+                        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(compoundButton.getContext(), Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_DENIED){
                             grantPermissions();
                         }
 
@@ -328,9 +331,10 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
             boolean put1 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_max_count", 1_000_000); // 1 million SMS messages every
             boolean put2 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_interval_ms", 30000); // 30 seconds
             // Something tells me we won't hit this limit.
-            Toast.makeText(this, "Done. You may need to reboot. This should only be done once.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Done. You may need to restart server. This should only be done once.", Toast.LENGTH_LONG).show();
             Log.e("put1", String.valueOf(put1));
             Log.e("put2", String.valueOf(put2));
+
 
         }catch(SecurityException se){
             Toast.makeText(this, "Permission WRITE_SECURE_SETTINGS not obtained!", Toast.LENGTH_LONG).show();
