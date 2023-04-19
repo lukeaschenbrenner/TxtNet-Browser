@@ -11,6 +11,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.database.DBInstance;
 import com.txtnet.txtnetbrowser.database.Server;
@@ -41,7 +43,7 @@ public class ServerPickerActivity extends AppCompatActivity {
 
     private ServerPickerModel mViewModel;
     public static final int NEW_SERVER_ACTIVITY_REQUEST_CODE = 1;
-
+    private boolean NEEDS_DEFAULT = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +62,12 @@ public class ServerPickerActivity extends AppCompatActivity {
         boolean needsDefault = intent.getBooleanExtra("needDefault", false);
         if(needsDefault){
             ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
-            Snackbar.make(view.getRootView(), "Please enter a phone number and select it as default!", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+            Snackbar snackbar = Snackbar.make(view.getRootView(), "Please enter a phone number and select it as default!", Snackbar.LENGTH_LONG).setAction("OK", null);
+            //snackbar.setAnchorView(getWindow().getDecorView());
+            snackbar.show();
         }
+        NEEDS_DEFAULT = needsDefault;
+
 
 
 //        FloatingActionButton fab = binding.fab;
@@ -115,7 +121,7 @@ public class ServerPickerActivity extends AppCompatActivity {
             public void instantiateUnderlayButton(RecyclerView.ViewHolder viewHolder, List<UnderlayButton> underlayButtons) {
                 ServerViewHolder holder = (ServerViewHolder) viewHolder;
                 underlayButtons.add(new SwipeHelper.UnderlayButton(
-                        "Delete",
+                        "DELETE",
                         0,
                         Color.parseColor("#FF3C30"),
                         new SwipeHelper.UnderlayButtonClickListener() {
@@ -137,6 +143,19 @@ public class ServerPickerActivity extends AppCompatActivity {
         };
     }
 
+    @Override
+    public void onBackPressed() {
+        SharedPreferences prefs = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
+        String phoneNumber = prefs.getString(getResources().getString(R.string.phone_number), null);
+        if(NEEDS_DEFAULT && (phoneNumber != null)) {
+            Intent intent = new Intent(this, MainBrowserScreen.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            ActivityCompat.finishAffinity(ServerPickerActivity.this);
+        }else{
+            super.onBackPressed();
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

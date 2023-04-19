@@ -349,20 +349,29 @@ public class MainBrowserScreen extends AppCompatActivity {
             public void onClick(View v) {
                 if (webView.canGoBack()) {
                     webView.goBack();
+                    urlEditText.setText(webView.getUrl());
                 }
             }
         });
         forward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if (webView.canGoForward()) {
-                //    webView.goForward();
-                //}
+                if (webView.canGoForward()) {
+
+                    /*
+                    WebBackForwardList mWebBackForwardList = myWebView.copyBackForwardList();
+if (mWebBackForwardList.getCurrentIndex() > 0)
+    historyUrl = mWebBackForwardList.getItemAtIndex(mWebBackForwardList.getCurrentIndex()-1).getUrl();
+
+                     */
+                    webView.goForward();
+                    urlEditText.setText(webView.getUrl());
+                }
 
 
                // mGetContent.launch("encoded.br");
                 Brotli4jLoader.ensureAvailability();
-                Log.e("hereswhatsup", "e: " + String.valueOf(Brotli4jLoader.isAvailable()));
+                Log.e("IsBrotliAvailable", "e: " + String.valueOf(Brotli4jLoader.isAvailable()));
                 //UseBrotliTest test = new UseBrotliTest();
            //     Log.e("shizukualive", String.valueOf(Shizuku.pingBinder())); // "Normal apps should use listeners rather calling this method everytime"
 
