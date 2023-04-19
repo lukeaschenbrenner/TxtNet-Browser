@@ -614,18 +614,22 @@ In activity:
         Safelist list = new Safelist();
         list.addProtocols("a", "href", "http", "https", "#");
         list.addTags(VALID_TAGS);
-        for(String tag : VALID_TAGS){
-            list.addAttributes(tag, VALID_ATTRIBUTES);
-        }
+        //for(String tag : VALID_TAGS){
+        //    list.addAttributes(tag, VALID_ATTRIBUTES);
+        //}
+        list.addAttributes(":all", VALID_ATTRIBUTES);
 
         Cleaner c = new Cleaner(list);
 
         List<String> childList = new ArrayList<>();
         NodeVisitor myNodeVisitor = new MyNodeVisitor(childList);
 
+        //Log.i("HTML", "Input HTML: " + input);
+
         Document base = Jsoup.parse(input);
         base.charset(StandardCharsets.UTF_8);
         base = c.clean(base);
+        //Log.i("HTML", "After clean HTML: " + base.outerHtml());
 
         Elements tags = base.getAllElements();
         for (Element e : tags) {
@@ -633,14 +637,23 @@ In activity:
                 e.unwrap();
             }
         }
+        //Log.i("HTML", "After unwrap: " + base.outerHtml());
+
         base.traverse(myNodeVisitor);
+
+        //Log.i("HTML", "After visiting: " + base.outerHtml());
+
 
         String outerHTML = base.outerHtml();
         HtmlCompressor comp = new HtmlCompressor();
         comp.setRemoveComments(true);
         comp.setRemoveQuotes(false);
         comp.setRemoveStyleAttributes(true);
+        comp.setRemoveIntertagSpaces(true);
         comp.setEnabled(true);
+
+        //Log.i("HTML", "After compress: " + comp.compress(outerHTML));
+
         return comp.compress(outerHTML);
 
     }
