@@ -10,6 +10,15 @@ In addition, any user can act as a server using their own phone's primary phone 
 ## Download
 ### See the **[releases page](https://github.com/lukeaschenbrenner/TxtNet-Browser/releases)** for an APK download of the TxtNet Browser client. A Google Play release is coming soon.
 TxtNet Browser is currently compatible with Android 4.4-13+.
+
+## Running Server Instances (uptime not guaranteed)
+| Country      | Phone Number | Notes     |
+| :---        |    :----:   | :---        |
+| United States      | +1(913)203-2719 | Supports SMS to [these countries](https://github.com/lukeaschenbrenner/TxtNet-Browser/issues/2#issuecomment-1510506701)   |
+|    |      |     |
+
+Let me know if you are interested in hosting a server instance for your area!
+
 > ⚠️**Please note**: All web traffic  should be considered unencrypted, as all requests are made over SMS and received in plaintext by the server!
 
 ## How it works (client)
