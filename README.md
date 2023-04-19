@@ -9,20 +9,29 @@ In addition, any user can act as a server using their own phone's primary phone 
 
 ## Download
 ### See the **[releases page](https://github.com/lukeaschenbrenner/TxtNet-Browser/releases)** for an APK download of the TxtNet Browser client. A Google Play release is coming soon.
+TxtNet Browser is currently compatible with Android 4.4-13+.
+
+## Running Server Instances (uptime not guaranteed)
+| Country      | Phone Number | Notes     |
+| :---        |    :----:   | :---        |
+| United States      | +1(913)203-2719 | Supports SMS to [these countries](https://github.com/lukeaschenbrenner/TxtNet-Browser/issues/2#issuecomment-1510506701)   |
+|    |      |     |
+
+Let me know if you are interested in hosting a server instance for your area!
 
 > ⚠️**Please note**: All web traffic  should be considered unencrypted, as all requests are made over SMS and received in plaintext by the server!
 
-## How it works
+## How it works (client)
 
-This app utilizes a permission present in Android since KitKat (4.4) which allows any app to read incoming SMS messages and send SMS messages without being your default SMS app. While this is a security concern, the code for this app is open source and does not use any internet permissions (because that's the whole point!)   
-The app communicates with a "server phone number", which is a phone number controlled by a messaging API (in this case Twilio) that communicates over REST to the Python server script. Each URL request is sent, encoded in a custom base 114, to the server. Usually, this only requires 1 SMS, but just in case, each message is prepended with an order specifier. When the server receives a request, it uses Pyppeteer to request the website in a Chromium instance running on the server. This allows any Javascript that may exist to parse all HTML required. Once the page is loaded, only the HTML is transferred back to the recipient device. The HTML is stripped of unnecessary tags and attributes, compressed into raw bytes, and then encoded. Once encoded, the messages are split into 160 character numbered segments (maximizing the [GSM-7 standard](https://en.wikipedia.org/wiki/GSM_03.38) SMS size) and sent to the app to parse using the Twilio API.
+This app uses a permission that allows a broadcast reciever to recieve and parse incoming SMS messages without the need for the app to be registered as the user's default messaging app. While granting an app SMS permissions poses a security concern, the code for this app is open source and all code involving the use of internet permissions are compartamentalized to the server module. This ensures that unless the app is setup to be a server, no internet traffic is transmitted. In addition, as the client, SMS messages are only programatically sent to and recieved from a registered server phone number.
+The app communicates with a "server phone number", which is a phone number controlled by a "server host" that communicates directly over SMS using Android's SMS APIs. Each URL request is sent, encoded in a custom base 114, to the server. Usually, this only requires 1 SMS, but just in case, each message is prepended with an order specifier. When the server receives a request, the server uses an Android WebView component to programatically request the website in a manner that simulates a regular request, to avoid restrictions some services (such as Cloudflare) place on HTTP clients. By doing this, any Javascript can also execute on the website, allowing content to be dynamically loaded into the HTML if needed. Once the page is loaded, only the HTML is transferred back to the recipient device. The HTML is stripped of unnecessary tags and attributes, compressed into raw bytes, and then encoded. Once encoded, the messages are split into 160 character numbered segments (maximizing the [GSM-7 standard](https://en.wikipedia.org/wiki/GSM_03.38) SMS size) and sent to the client app for parsing and displaying.
 
 Side note: Compression savings have been estimated to be an average of 20% using Brotli, but oftentimes it can save much more! For example, the website `example.com` in stripped HTML is 285 characters, but only requires 2 SMS messages (189 characters) to receive. Even including the 225% overhead in data transmission, it is still more efficient!
 
 #### Why encode the HTML in the first place?
 SMS was created in 1984, and was created to utilize the extra bytes from the data channels in phone signalling. It was originally conceived to only support 128 characters in a 7-bit alphabet. When further characters were required to support a subset of the UTF-8 character set, a new standard called UCS-2 was created. Still limited by the 160 bytes available, UCS-2 supports more characters (many of which show up in HTML documents) but limits SMS sizes to 70 characters per SMS. By encoding all data in GSM-7, more data can be sent per SMS message than sending the raw HTML over SMS. It is possible that it may be even more efficient to create an encoding system using all the characters available in UCS-2, but this limits compatibility and is out of the scope of the project.
 
-## Server Hosting (alpha)
+## Server Hosting
 TxtNet Browser has been rewritten to include a built-in server hosting option inside the app. Instead of the now-deprecated Python server using a paid SMS API, any user can now act as a server host, allowing for distributed communication.  
 To enable the background service, tap on the overflow menu and select "TxtNet Server Hosting". Once the necessary permissions are granted, you can press on the "Start Service" toggle to initialize a background service.  
 TxtNet Server uses your primary mobile number associated with the active carrier subscription SIM as a number that others can add and connect to.  
@@ -47,12 +56,13 @@ For Android 4.4-6.0, you will need to run adb commands one time as specified in 
 
 Bugs:
 - Many carriers are unnecessarily rate limiting incoming text messages, so a page may look as though it "stalled" while loading on large pages. As of now the only way to fix this is to wait!
+- In congested networks, it's possible for a mobile carrier to drop one or more SMS messages before they are recieved by the client. Currently, the app has no logic to mitigate this issue, so any websites that have stalled for a significant amount of time should be requested again.
 - In Android 12 (or possibly a new version of Google Messages?), there is a new and "improved" messages blocking feature. This results in no SMS messages getting through when a number is blocked, which makes the blocking feature of TxtNet Browser break the app! Instead of blocking messages, to get around this "feature", you can silent message notifications from the server phone number.  
   <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/>
   <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/Messages_Migrating_Popup.png" alt="Contacts Popup" width="200"/>  
   <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/MigratingBlockedContacts.png" alt="Migrating Contacts" width="200"/>  
 
-## Screenshots / Demo
+## Screenshots (TxtNet 1.0)
 
 <table>  
   <tr>  
@@ -66,7 +76,7 @@ Bugs:
   </tr>  
 </table>
 
-##### Demo
+##### Demo (TxtNet 1.0)
 
 https://user-images.githubusercontent.com/5207700/191133921-ee39c87a-c817-4dde-b522-cb52e7bf793b.mp4
 
