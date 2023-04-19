@@ -544,13 +544,15 @@ In activity:
                         webview.evaluateJavascript(
                                 "(function() { " +
                                         "var node = document.doctype;\n" +
+                                        "if(node === null){ return (document.documentElement.outerHTML); }\n" +
+                                        "else { \n"+
                                         "var html = \"<!DOCTYPE \"\n" +
                                         "         + node.name\n" +
                                         "         + (node.publicId ? ' PUBLIC \"' + node.publicId + '\"' : '')\n" +
                                         "         + (!node.publicId && node.systemId ? ' SYSTEM' : '') \n" +
                                         "         + (node.systemId ? ' \"' + node.systemId + '\"' : '')\n" +
-                                        "         + '>';" +
-                                        "return (html+document.documentElement.outerHTML); })();",
+                                        "         + '>';\n" +
+                                        "return (html+document.documentElement.outerHTML); } })();",
                                 vc);
                     }
                 });
