@@ -55,6 +55,7 @@ public class SmsSocket {
     private Phonenumber.PhoneNumber phoneNumber;
     private AtomicBoolean shouldSend = new AtomicBoolean(true);
     private TxtNetServerService service = null;
+    private boolean isSending = false;
     private int MAX_SMS_PER_REQUEST;
     public SmsSocket(Phonenumber.PhoneNumber number, TxtNetServerService service, int maxSmsPerRequest) {
         this();
@@ -164,7 +165,6 @@ public class SmsSocket {
             return;
         }
 
-
         sms.sendTextMessage(outputNumber, null, howManyTextsToExpect + " Process starting", null, null);
         try {
             Thread.sleep(1000);
@@ -172,13 +172,35 @@ public class SmsSocket {
             e.printStackTrace();
         }
         int currentMessageID = 0;
+        isSending = true;
         while(shouldSend.get() && currentMessageID < smsQueue.size()){
             sms.sendTextMessage(outputNumber, null, smsQueue.get(currentMessageID), null, null);
             currentMessageID++;
+          //  try {
+          //      Thread.sleep(100);
+          //  } catch (InterruptedException e) {
+          //      e.printStackTrace();
+          //  }
+        }
+        isSending = false;
+
+        Log.i(TAG, "currentmessageid: " + currentMessageID + ", smsqueue.size: " + smsQueue.size() + " shouldSend: " + shouldSend);
+
+        boolean wasFalse = shouldSend.compareAndSet(false, true);
+//        if(!shouldSend.get()){
+//            Log.i(TAG, "not shouldsend!");
+//            shouldSend.set(true);
+//        }
+        if(wasFalse){
+            Log.i(TAG, "it was false!");
         }
     }
     public void stopSend(){
-        shouldSend.set(false);
+        if(isSending){
+            shouldSend.set(false);
+        }
+        inputRequestBuffer.clear();
+        //TxtNetServerService.smsDataBase.remove(phoneNumber);  << to eventually clear memory leaks, could have this
     }
 
 

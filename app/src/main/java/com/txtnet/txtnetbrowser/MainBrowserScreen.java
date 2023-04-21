@@ -387,14 +387,14 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
                 webView.stopLoading();
                 assert TextMessageHandler.getInstance() != null;
                 TextMessageHandler.getInstance().sendTextMessage("Website Cancel");
-                TextMessageHandler.getInstance().sendTextMessage("STOP");
-                final Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        TextMessageHandler.getInstance().sendTextMessage("unstop");
-                    }
-                }, 5000);
+                //TextMessageHandler.getInstance().sendTextMessage("STOP");
+                //final Handler handler = new Handler(Looper.getMainLooper());
+                //handler.postDelayed(new Runnable() {
+                //    @Override
+                //    public void run() {
+                //        TextMessageHandler.getInstance().sendTextMessage("unstop");
+                //    }
+                //}, 5000);
                 swipe.setRefreshing(false);
             }
         });
