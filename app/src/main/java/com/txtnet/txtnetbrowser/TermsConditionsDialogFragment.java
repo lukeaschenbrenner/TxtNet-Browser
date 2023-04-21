@@ -40,7 +40,7 @@ public class TermsConditionsDialogFragment extends DialogFragment {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         builder.setView(inflater.inflate(R.layout.dialog_termsconditions, null))
-                .setTitle("TxtNet Browser Terms and Conditions")
+                .setTitle(R.string.TCDFMsg1)
                 .setCancelable(false)
                 .setPositiveButton(getString(R.string.accept), (dialog, which) -> {
                     SharedPreferences.Editor editor = preferences.edit();

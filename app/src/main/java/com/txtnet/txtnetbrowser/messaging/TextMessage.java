@@ -6,6 +6,7 @@ import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
 import android.content.Context;
 import android.util.Log;
 
+import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
 import com.txtnet.txtnetbrowser.basest.Decode;
 import com.txtnet.txtnetbrowser.basest.Encode;
@@ -43,7 +44,7 @@ public class TextMessage {
     public TextMessage(int sizeOfParts, Context context){
         this.context = context;
         if(sizeOfParts < 0){
-            Log.e(TAG, "******* ERROR: SIZE OF PARTS IS NEGATIVE");
+            Log.e(TAG, context.getString(R.string.textMessage1));
             return;
         }
         textBuffer = new String[sizeOfParts];
@@ -51,7 +52,7 @@ public class TextMessage {
 
     public void addPart(int index, String part) throws Exception {
         if(index < 0 || index > textBuffer.length || part == null){
-            Log.e(TAG, "******* ERROR: EITHER PART WAS NULL OR INDEX WAS OUT OF BOUNDS");
+            Log.e(TAG, context.getString(R.string.textMessage2));
             return;
         }
 

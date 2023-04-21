@@ -69,4 +69,64 @@
     <string name="shizuku_incompatible_continue">Reload module</string>
     <string name="request_sms_outgoing_exceeded_error">Error: Request Exceeded Max SMS Limit</string>
     <string name="newServerInfoStr">Input a phone number that you would like to connect to.\nThe number must be hosting a TxtNet Server instance.\nNOTE: If you do not wish to use client features and only wish to host a server,\nplease input an fake number such as\n+15555555555</string>
+
+    <string name="textMessage1">******* ERROR: SIZE OF PARTS IS NEGATIVE</string>
+    <string name="textMessage2">******* ERROR: EITHER PART WAS NULL OR INDEX WAS OUT OF BOUNDS</string>
+    <string name="serverPickerActivityMsg1">Please enter a phone number and select it as default!</string>
+    <string name="serverPickerActivityMsg2">DELETE</string>
+    <string name="SMSDelRecMsg">SMS not delivered</string>
+
+    <string name="SSRMsg1"><![CDATA[SMS generic failure, close app & upload logs.]]></string>
+    <string name="SSRMsg2">\"Error code: \"</string>
+    <string name="SSRMsg3">Unknown Error code: -1. This should never happen!</string>
+    <string name="SSRMsg4">SMS no service</string>
+    <string name="SSRMsg5">SMS null PDU</string>
+    <string name="SSRMsg6">SMS radio off - turn off airplane mode!</string>
+
+    <string name="SDMsg1">TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)</string>
+    <string name="SDMsg2">Allows TxtNet server to be run in the background.</string>
+    <string name="SDMsg3">Shizuku permissions denied!</string>
+    <string name="SDMsg4">Shizuku permissions granted!</string>
+    <string name="SDMsg5">Done. You may need to restart server. This should only be done once.</string>
+    <string name="SDMsg6">Permission WRITE_SECURE_SETTINGS not obtained!</string>
+    <string name="SDMsg7">\"Error: The requested service doesn\'t \"</string>
+
+    <string name="TNSSS1">TxtNet Server Is Running</string>
+    <string name="TNSSS2">Press this notification to open the server management screen.</string>
+    <string name="TNSSS3">Server stopped!</string>
+
+    <string name="AIAMsg1">Welcome to TxtNet Browser!</string>
+    <string name="AIAMsg2">This app will allow you to browse the web without an internet connection.</string>
+    <string name="AIAMsg3">Permissions</string>
+    <string name="AIAMsg4">Certain permissions are required to continue. Without them, this app will not function.</string>
+    <string name="AIAMsg5">Thank you!</string>
+    <string name="AIAMsg6">Enjoy the app.</string>
+
+    <string name="DSAMsg1">\"TxtNet SMS is \"</string>
+    <string name="DSAMsg2">now the default SMS app.</string>
+    <string name="DSAMsg3">still not the default SMS app.</string>
+    <string name="DSAMsg4">Please select your SMS app to change to.</string>
+    <string name="DSAMsg5">Please select \"TxtNet SMS\" as the default SMS app!</string>
+    <string name="DSAMsg6">Please select \"TxtNet SMS\" as the default SMS app!</string>
+    <string name="DSAMsg7">Reverted SMS app default settings.</string>
+    <string name="DSAMsg8">This function only works when TxtNet Browser is the default SMS app.</string>
+    <string name="DSAMsg9">All messages have been deleted successfully.</string>
+    <string name="DSAMsg10">This function only works when TxtNet Browser is the default SMS app.</string>
+    <string name="DSAMsg11">Phone number block success!.</string>
+    <string name="DSAMsg12">Blocking is not supported on your phone.</string>
+    <string name="DSAMsg13">More Information</string>
+    <string name="DSAMsg14">This function only works when TxtNet Browser is the default SMS app.</string>
+    <string name="DSAMsg15">Phone number unblock success!</string>
+    <string name="DSAMsg16">Phone number already unblocked.</string>
+    <string name="DSAMsg17">Blocking is not supported on your phone.</string>
+    <string name="DSAMsg18">More Information</string>
+
+    <string name="MBSMsg1">No permissions granted!</string>
+    <string name="MBSMsg2">\"Permission error: not granted: \"</string>
+    <string name="MBSMsg3">Permissions are accepted! App is now functional.</string>
+    <string name="MBSMsg4">Link copied!</string>
+
+    <string name="TCDFMsg1">TxtNet Browser Terms and Conditions</string>
+
+
 </resources>

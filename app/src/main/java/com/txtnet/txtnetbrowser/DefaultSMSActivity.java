@@ -1,6 +1,21 @@
 package com.txtnet.txtnetbrowser;
 
 
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg1;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg10;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg11;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg12;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg14;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg15;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg17;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg3;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg4;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg5;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg6;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg7;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg8;
+import static com.txtnet.txtnetbrowser.R.string.DSAMsg9;
+
 import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -40,7 +55,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         String currentDefault = Telephony.Sms.getDefaultSmsPackage(this);
         boolean isDefault = getPackageName().equals(currentDefault);
-        Toast.makeText(getApplicationContext(), "TxtNet SMS is " + (isDefault ? "now the default SMS app." : "still not the default SMS app."), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), getString(DSAMsg1) + (isDefault ? getString(R.string.DSAMsg2) : getString(DSAMsg3)), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -59,14 +74,14 @@ public class DefaultSMSActivity extends AppCompatActivity {
                     roleManager = getApplicationContext().getSystemService(RoleManager.class);
                     if (roleManager.isRoleAvailable(RoleManager.ROLE_SMS)) {
                         if (roleManager.isRoleHeld(RoleManager.ROLE_SMS)) {
-                            Toast.makeText(getApplicationContext(), "Please select your SMS app to change to.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), DSAMsg4, Toast.LENGTH_SHORT).show();
                             Intent i = new Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS);
                             startActivity(i);
                         } else {
                             Intent roleRequestIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
 
 
-                            Toast.makeText(getApplicationContext(), "Please select \"TxtNet SMS\" as the default SMS app!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), DSAMsg5, Toast.LENGTH_LONG).show();
 
                             startActivityForResult(roleRequestIntent, 2); // we use the onActivityResult callback to find out if the user actually did this!
 
@@ -84,7 +99,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
                         String myPackageName = getPackageName();
                         Intent setSmsAppIntent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
                         setSmsAppIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-                        Toast.makeText(getApplicationContext(), "Please select \"TxtNet SMS\" as the default SMS app!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), DSAMsg6, Toast.LENGTH_LONG).show();
 
                         startActivity(setSmsAppIntent);
 
@@ -95,7 +110,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
                                 .setComponentEnabledSetting(new ComponentName(v.getContext(), SMSActivities.SmsReceiver.class),
                                         PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                                         PackageManager.DONT_KILL_APP);
-                        Snackbar.make(v, "Reverted SMS app default settings.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                        Snackbar.make(v, DSAMsg7, Snackbar.LENGTH_LONG).setAction("OK", null).show();
 
                     }
 
@@ -108,7 +123,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d("BUTTON2", "PRESSED");
                 if(!isDefaultSmsApp(v.getContext())){
-                    Snackbar.make(v, "This function only works when TxtNet Browser is the default SMS app.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                    Snackbar.make(v, DSAMsg8, Snackbar.LENGTH_LONG).setAction("OK", null).show();
                     return;
                 }
                 //DELETE ALL SMS
@@ -145,7 +160,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
                             int rowsDeleted = getContentResolver().delete(Uri.parse("content://sms/" + messageid), null, null);
 
                         }
-                        Snackbar.make(v, "All messages have been deleted successfully.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                        Snackbar.make(v, DSAMsg9, Snackbar.LENGTH_LONG).setAction("OK", null).show();
 
                     }}).start();
 
@@ -156,7 +171,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
         button3.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if(!isDefaultSmsApp(v.getContext())){
-                    Snackbar.make(v, "This function only works when TxtNet Browser is the default SMS app.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                    Snackbar.make(v, DSAMsg10, Snackbar.LENGTH_LONG).setAction("OK", null).show();
                     return;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -180,10 +195,10 @@ public class DefaultSMSActivity extends AppCompatActivity {
                     values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, intl);
                     values.put(BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER, pnE164);
                     Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values);
-                    Snackbar.make(v, "Phone number block success!.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                    Snackbar.make(v, DSAMsg11, Snackbar.LENGTH_LONG).setAction("OK", null).show();
 
                 }else{
-                    Snackbar.make(v, "Blocking is not supported on your phone.", Snackbar.LENGTH_LONG).setAction("More Information", new View.OnClickListener(){
+                    Snackbar.make(v, DSAMsg12, Snackbar.LENGTH_LONG).setAction(R.string.DSAMsg13, new View.OnClickListener(){
                         @Override
                         public void onClick(View view) {
                             Intent intent = new Intent(v.getContext(), UnsupportedBlockActivity.class);
@@ -199,7 +214,7 @@ public class DefaultSMSActivity extends AppCompatActivity {
         button4.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if(!isDefaultSmsApp(v.getContext())){
-                    Snackbar.make(v, "This function only works when TxtNet Browser is the default SMS app.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                    Snackbar.make(v, DSAMsg14, Snackbar.LENGTH_LONG).setAction("OK", null).show();
                     return;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -224,18 +239,18 @@ public class DefaultSMSActivity extends AppCompatActivity {
                             Log.d("DEFAULT", "Unblock process begin.");
                             int result = BlockedNumberContract.unblock(v.getContext(), pnE164);
                             if(result > 0){
-                                Snackbar.make(v, "Phone number unblock success!", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                                Snackbar.make(v, DSAMsg15, Snackbar.LENGTH_LONG).setAction("OK", null).show();
                                 Log.d("DEFAULT:", "Unblock success");
 
                             }else{
-                                Snackbar.make(v, "Phone number already unblocked.", Snackbar.LENGTH_LONG).setAction("OK", null).show();
+                                Snackbar.make(v, R.string.DSAMsg16, Snackbar.LENGTH_LONG).setAction("OK", null).show();
                                 Log.d("DEFAULT:", "Unblock fail");
                             }
                         }}).start();
 
 
                 }else{
-                    Snackbar.make(v, "Blocking is not supported on your phone.", Snackbar.LENGTH_LONG).setAction("More Information", new View.OnClickListener(){
+                    Snackbar.make(v, DSAMsg17, Snackbar.LENGTH_LONG).setAction(R.string.DSAMsg18, new View.OnClickListener(){
                         @Override
                         public void onClick(View view) {
                             Intent intent = new Intent(v.getContext(), UnsupportedBlockActivity.class);

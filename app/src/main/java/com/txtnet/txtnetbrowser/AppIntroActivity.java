@@ -20,8 +20,8 @@ public class AppIntroActivity extends AppIntro {
         super.onCreate(savedInstanceState);
 
         addSlide(AppIntroFragment.createInstance(
-                "Welcome to TxtNet Browser!",
-                "This app will allow you to browse the web without an internet connection.",
+                getString(R.string.AIAMsg1),
+                getString(R.string.AIAMsg2),
                 R.mipmap.ic_launcher,
                 R.color.green,
                 R.color.white,
@@ -29,16 +29,16 @@ public class AppIntroActivity extends AppIntro {
 
 
         addSlide(AppIntroFragment.createInstance(
-                "Permissions",
-                "Certain permissions are required to continue. Without them, this app will not function.",
+                getString(R.string.AIAMsg3),
+                getString(R.string.AIAMsg4),
                 R.drawable.permissions_request_phone,
                 R.color.green,
                 R.color.white,
                 R.color.white));
 
         addSlide(AppIntroFragment.createInstance(
-                "Thank you!",
-                "Enjoy the app.",
+                getString(R.string.AIAMsg5),
+                getString(R.string.AIAMsg6),
                 R.drawable.forward_arrow,
                 R.color.green,
                 R.color.white,
