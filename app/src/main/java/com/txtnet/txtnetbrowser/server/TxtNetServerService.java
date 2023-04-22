@@ -47,8 +47,11 @@ import androidx.core.app.NotificationManagerCompat;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.google.i18n.phonenumbers.Phonenumber.*;
 import com.googlecode.htmlcompressor.compressor.HtmlCompressor;
+import com.txtnet.txtnetbrowser.BuildConfig;
 import com.txtnet.txtnetbrowser.Constants;
+import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
+import com.txtnet.txtnetbrowser.util.AndroidLogFormatter;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
@@ -58,6 +61,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -65,6 +70,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +80,9 @@ import java.util.ListIterator;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import rikka.shizuku.Shizuku;
 import org.jsoup.*;
@@ -90,6 +99,7 @@ import org.jsoup.select.NodeVisitor;
 
 
 public class TxtNetServerService extends Service {
+    private Logger rootLogger;
     private NotificationManagerCompat notificationManager;
     private final int NOTIFICATION_ID = 43;
     private int WEBVIEWS_LIMIT = 5;
@@ -111,6 +121,8 @@ public class TxtNetServerService extends Service {
 
     private Binder binder;
 
+    private LinearLayout webViewsLayout = null;
+
     @Override
     public IBinder onBind(Intent intent) {
         int tempNum = intent.getIntExtra("maxWebViews", 5);
@@ -119,8 +131,8 @@ public class TxtNetServerService extends Service {
         }
         MAX_SMS_PER_REQUEST = intent.getIntExtra("maxOutgoingSmsPerRequest", 100);
 
-        LinearLayout view = new LinearLayout(this);
-        view.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        webViewsLayout = new LinearLayout(this);
+        webViewsLayout.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
 
         //
         //////// Populate webviews
@@ -130,7 +142,7 @@ public class TxtNetServerService extends Service {
             webViews.add(new WebView(this));
             webViewBusynessMap.put(webViews.get(i), new AtomicBoolean(false));
             webViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-            view.addView(webViews.get(i));
+            webViewsLayout.addView(webViews.get(i));
 
             webViews.get(i).measure(412, 824); // Reference viewport size of Pixel 4 XL
             webViews.get(i).layout(0, 0, 412, 824);
@@ -171,7 +183,7 @@ In activity:
         params.y = 0;
         params.width = 0;
         params.height = 0;
-        windowManager.addView(view,params);
+        windowManager.addView(webViewsLayout,params);
         //    surfaceView.getHolder().addCallback(this);
         Log.i(TAG, WEBVIEWS_LIMIT + " Views added.");
 
@@ -264,6 +276,46 @@ In activity:
                     stopForegroundService();
                     Toast.makeText(getApplicationContext(),
          */
+
+
+        if (BuildConfig.DEBUG) {
+
+            File destinationFolder = this.getExternalFilesDir(null);
+
+
+
+            rootLogger = java.util.logging.LogManager.getLogManager().getLogger("");
+            File file = new File(destinationFolder, "logFile.txt");
+            FileHandler handlerLog = null;
+            try {
+                handlerLog = new FileHandler(file.getAbsolutePath(), 5 * 1024 * 1024/*100Mb*/, 100, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            handlerLog.setFormatter(new AndroidLogFormatter(file.getAbsolutePath(),""));
+
+            rootLogger.addHandler(handlerLog);
+            rootLogger.setUseParentHandlers(true);
+
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    paramThrowable.printStackTrace(pw);
+                    try {
+                        sw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    rootLogger.log(Level.SEVERE, sw.toString());
+                    System.exit(2);
+                }
+            });
+
+
+        }
 
         return START_STICKY;
      ///alternative:   return START_NOT_STICKY;
@@ -411,7 +463,15 @@ In activity:
                                    // Log.e("newbusy", "newwebviewbusyness: " + Objects.requireNonNull(webViewBusynessMap.get(view)).get());
                                     System.out.println("Webview " + view.toString() + " is running. " + finalI);
                                     String url = sanitizeUrl(msgCopy.getData().getString("linkToVisit"));
-                                    view.loadUrl(url);
+                                    if(url != null){ //&& StandardCharsets.US_ASCII.newEncoder().canEncode(url)){
+                                        view.loadUrl(url);
+                                        //view.loadUrl("chrome://crash"); << test crashing view
+                                    }else{
+                                        Log.w(TAG, "Invalid URL supplied: " + msgCopy.getData().getString("linkToVisit"));
+                                        pageLoadFailed(view, true);
+                                        //socketAssociatedWithWebViews[finalI].sendHTML("<html><p>Sorry, your phone's carrier does not correctly encode certain characters. Until they fix this issue, you cannot use this app.</p></html>");
+                                    }
+
                                 }
                             });
                             shouldExit = true;
@@ -492,7 +552,55 @@ In activity:
 
             }
         }
+    public void pageLoadFailed(WebView webview, boolean hasInvalidChars){
+        String downloadedHTML = "<html>Error: Page failed to parse.</html>";
+        if(hasInvalidChars){
+            downloadedHTML = "<html><p>Sorry, your phone's carrier does not correctly encode certain characters. Until they fix this issue, you cannot use this app.</p></html>";
+        }
+        String output = sanitizeHtml(StringEscapeUtils.unescapeJava(downloadedHTML));
+        SmsSocket currentSocket = socketAssociatedWithWebViews[webViews.indexOf(webview)];
+        currentSocket.sendHTML(output);
+        socketAssociatedWithWebViews[webViews.indexOf(webview)] = null;
+        try{
+            Objects.requireNonNull(TxtNetServerService.webViewBusynessMap.get(webview)).set(false);
+            synchronized (SEMAPHORE){
+                SEMAPHORE.notifyAll();
+            }
+        }catch(NullPointerException npe){
+            npe.printStackTrace();
+        }
+    }
+    public void replaceFailedWebView(WebView webview){
+        webViewBusynessMap.remove(webview);
+        webViewsLayout.removeView(webview);
+        WebView newView = new WebView(this);
 
+        newView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        webViewsLayout.addView(newView);
+
+        newView.measure(412, 824); // Reference viewport size of Pixel 4 XL
+        newView.layout(0, 0, 412, 824);
+        WebSettings ws = newView.getSettings();
+        ws.setJavaScriptEnabled(true);
+        ws.setAllowFileAccessFromFileURLs(true);
+        ws.setSaveFormData(false);
+        newView.post(new Runnable() { // careful, this runs on main thread!
+            @Override
+            public void run() {
+                newView.setWebViewClient(new ServerWebViewClient(TxtNetServerService.this));
+            }
+        });
+        SmsSocket currentSocket = socketAssociatedWithWebViews[webViews.indexOf(webview)];
+        //currentSocket.sendHTML("<html><p>Sorry, the page you requested cannot be parsed.</p></html>");
+        socketAssociatedWithWebViews[webViews.indexOf(webview)] = null;
+
+        webViewBusynessMap.put(newView, new AtomicBoolean(false));
+        webViews.set(webViews.indexOf(webview), newView);
+        synchronized (SEMAPHORE){
+            SEMAPHORE.notifyAll();
+        }
+
+    }
     public void exportHTMLFromWebsite(WebView webview){ //, SmsSocket socket
         final String[] downloadedHTML = {""}; // must be one element final array because using inner class
         String TAG = "ServerWebViewClient";

@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
 import android.util.Log;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
@@ -38,7 +39,7 @@ public class ServerWebViewClient extends WebViewClient {
         public ServerWebViewClient(TxtNetServerService service){
             this.service = service;
         }
-
+        private boolean webViewSuccess = true;
   //  public ServerWebViewClient(WebView[] webViews) {
   //      super();
   //      for (WebView webView : webViews) {
@@ -49,6 +50,10 @@ public class ServerWebViewClient extends WebViewClient {
     @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             Log.w(TAG, "Recieved error from WebView, description: " + description + ", Failing url: " + failingUrl);
+            webViewSuccess = false;
+            timeout = false;
+            service.pageLoadFailed(view, false);
+
             //without this method, your app may crash...
         }
         @Override
@@ -108,8 +113,7 @@ public class ServerWebViewClient extends WebViewClient {
             timeout = false;
             //    takeWebviewScreenshot(intent.getStringExtra(Database.THUMBNAIL));
             Log.e("Page completion", url + " " + view.getProgress() + "%");
-            if ((!isRedirected && view.getProgress() >= 100)) {
-
+            if ((!isRedirected && view.getProgress() >= 100) && webViewSuccess) {
                 // if we overrode the URL load because of redirect, then onPageFinished will be called immediately so we need to check that progress is complete.
                 // if progress still isn't complete after 15 seconds, just move on.
                 //Do something you want when finished loading
@@ -117,6 +121,7 @@ public class ServerWebViewClient extends WebViewClient {
                 Thread th = new Thread(() -> service.exportHTMLFromWebsite(view));
                 th.start();
             }
+            webViewSuccess = true;
         }
 
         @Override
@@ -155,6 +160,14 @@ public class ServerWebViewClient extends WebViewClient {
             isRedirected = true;
             return true;
         }
+
+    public boolean onRenderProcessGone (WebView view,
+                                        RenderProcessGoneDetail detail){
+            timeout = false;
+            service.replaceFailedWebView(view);
+            Log.e(TAG, "WebView " + view.toString() + " render process gone. Details: " + detail.toString());
+            return true;
+    }
 /*
         private boolean handleUri(final Uri uri) {
             // Log.i(TAG, "Uri =" + uri);

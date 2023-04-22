@@ -21,6 +21,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import com.txtnet.brotli4droid.Brotli4jLoader;
 import com.txtnet.brotli4droid.decoder.BrotliInputStream;
 import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
+import com.txtnet.brotli4droid.encoder.Encoder;
 import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SmsSocket {
+    //private final int COMPRESSION_QUALITY_LEVEL = 11;
     public ArrayList<String> inputRequestBuffer;
     int finalBufferLength = 9999;
     public StringBuilder decodedUrl = new StringBuilder();
@@ -73,6 +75,8 @@ public class SmsSocket {
         ByteArrayOutputStream brotliOutput = new ByteArrayOutputStream();
         Brotli4jLoader.ensureAvailability();
         //Log.i(TAG, "Brotli4J is available? " + (Brotli4jLoader.isAvailable() ? "true" : "false"));
+        //Encoder.Parameters params = new Encoder.Parameters().setQuality(COMPRESSION_QUALITY_LEVEL);
+
         BufferedWriter brotliWriter = null;
         try {
             brotliWriter = new BufferedWriter(new OutputStreamWriter(new BrotliOutputStream(brotliOutput)));
@@ -184,16 +188,16 @@ public class SmsSocket {
         }
         isSending = false;
 
-        Log.i(TAG, "currentmessageid: " + currentMessageID + ", smsqueue.size: " + smsQueue.size() + " shouldSend: " + shouldSend);
+        //Log.i(TAG, "currentmessageid: " + currentMessageID + ", smsqueue.size: " + smsQueue.size() + " shouldSend: " + shouldSend);
 
         boolean wasFalse = shouldSend.compareAndSet(false, true);
 //        if(!shouldSend.get()){
 //            Log.i(TAG, "not shouldsend!");
 //            shouldSend.set(true);
 //        }
-        if(wasFalse){
-            Log.i(TAG, "it was false!");
-        }
+//        if(wasFalse){
+//            Log.i(TAG, "it was false!");
+//        }
     }
     public void stopSend(){
         if(isSending){
