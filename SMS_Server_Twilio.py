@@ -46,6 +46,7 @@ ALT_SYMBOL_TABLE = [
 SYMBOL_TABLE = [
 "@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_","Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","\u00A7","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
 ]
+MAX_SMS_PER_REQUEST = 100
 
 #Removed symbols for working prototype (US carriers are deleting greek symbols when using SMS API services):
 #"@","£","$","¥","è","é","ù","ì","ò","Ç","\n","Ø","ø","Å","å","_", "Æ","æ","ß","É","!","\"","#","¤","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","¡","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Ä","Ö","Ñ","Ü","`","¿","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","ä","ö","ñ","ü","à"
@@ -141,7 +142,7 @@ class smsDecoder(Encoder):
 #r = requests.get('https://www.almanac.com/content/how-tie-knots')
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 6 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.97 Mobile Safari/537.36',
 }
 async def get_website(url):
     #session = AsyncHTMLSession(browser_args=["--proxy-server=socks5://127.0.0.1:1080", "--host-resolver-rules=\"MAP * ~NOTFOUND , EXCLUDE 127.0.0.1\""])    
@@ -252,21 +253,23 @@ async def sendMessages(url, exceptionFlag = False):
     for i in range(0, len(output), NUM_CHARS_PER_SMS):
         smsQueue.append(output[i:i+NUM_CHARS_PER_SMS])
 
-    i = 0
-    for chunk in smsQueue:
-        string = ''.join(v2r(i, SYMBOL_TABLE))
+    for index, chunk in enumerate(smsQueue):
+        string = ''.join(v2r(index, SYMBOL_TABLE))
         #print(string)
+        #if index >= 0 and index == len(smsQueue)-1:
+        #    smsQueue[index] = (2*SYMBOL_TABLE[-1]) + smsQueue[index]
+        #elif(index == 0):
+        #    smsQueue[index] = f'{str(number):.2}' + chunk
+        #else:
         chunk = string + chunk
+        smsQueue[index] = chunk
         #print(chunk)
         #print("\n")
         #print("{}{}".format(i,chunk))
-        smsQueue[i] = chunk
-        i += 1
 
-    howManyTextsToExpect = math.ceil(len(smsQueue))
-
-    if(howManyTextsToExpect > 100):
+    if(math.ceil(len(smsQueue)) > MAX_SMS_PER_REQUEST):
         log.error("Website data too long for url: %s", url)
+        #raise Exception("TODO: IMPLEMENT USER FLOW FOR INPUT URL TOO LONG")
         return sendMessages(url, True) #website is too large to send, send an error instead
 
     print(howManyTextsToExpect, "Process starting...")
@@ -458,29 +461,45 @@ async def outbound_sms(to_, body_):
 
 
 async def background_task(from_, body):
-    if(body[:2] == "@@" or (body[:2] == "àà" and multiPartMessages.get(from_) != None and len(multiPartMessages[from_]) > 0)):
-        multiPartMessages[from_] = []
-
     try:
-        try:
-            multiPartMessages[from_].append(body)
-        except KeyError:
-            multiPartMessages[from_] = [body]
+        if(body[:2].isdigit()): #or (body[:2] == "àà" and multiPartMessages.get(from_) != None and len(multiPartMessages[from_]) > 0)):
+            multiPartMessages[from_] = [int(body[:2]), body]
+        else:
+            try:
+                multiPartMessages[from_].append(body)
+            except KeyError:
+                print("ERROR: KeyError")
+                multiPartMessages[from_] = [body]
         #print("MPM:")
         #print(multiPartMessages)
-
-        reassembled = [None] * len(multiPartMessages[from_])
+        try:
+            intVal = int(multiPartMessages[from_][0])
+            #print(intVal)
+            #print((len(multiPartMessages[from_])-1))
+            if((intVal+1) > (len(multiPartMessages[from_])-1)):
+                print("Partial message stored.")
+                return # We don't have the whole text yet
+        except ValueError:
+            pass
+        #print(f"len multipart = {(len(multiPartMessages[from_]))}")
+        reassembled = [None] * (len(multiPartMessages[from_])-1)
         
-        for str in multiPartMessages[from_]:
-            if(body[:2] == "àà"):
+        for aString in multiPartMessages[from_][1:]:
+            textOrder = -999
+            #print(f"STR::::: {str}")
+            if(aString[:2] == "àà"):
                 print(multiPartMessages[from_])
                 print(len(multiPartMessages[from_]))
-                textOrder = len(multiPartMessages[from_])-1
+                textOrder = len(multiPartMessages[from_])-2
+            elif(aString[:2].isdigit()):
+                textOrder = 0
+                print(f'Expecting  {int(aString[:2])+1} message(s)')
             else:
-                textOrder = r2v(str[:2], SYMBOL_TABLE)
-            text = ("{}".format(str[2:]))
+                textOrder = r2v(aString[:2], SYMBOL_TABLE)
+            text = ("{}".format(aString[2:]))
             if(len(text) == 157):
                 text =  text + "\n"
+            #print(f"{textOrder} < textOrder")
             reassembled[textOrder] = text
 
 
@@ -499,6 +518,7 @@ async def background_task(from_, body):
 
         garbageData = 0
         p = len(nums) - 1
+        print(p)
         while nums[p] == 114:
             garbageData += 1
             p -= 1
@@ -517,8 +537,9 @@ async def background_task(from_, body):
         except KeyError:
             decodedUrlByNumber[from_] = decodedUrlString
 
-        if(body[:2] == "àà"):
+        if((body[:2] == "àà" and len(multiPartMessages[from_]) > 2) or (body[:2]).isdigit()):
             finalDecString = decodedUrlByNumber[from_]
+            #print(finalDecString)
             asyncio.create_task(sendWebsite(from_, finalDecString))
             decodedUrlByNumber[from_] = ""
 
@@ -533,13 +554,15 @@ async def background_task(from_, body):
 
 
 
-
 @app.route('/receive_sms', methods=['POST'])
 async def inbound_sms():
     print("inbound_sms recieved/called....")
+#    from_ = "+15555555556"
+#    to = "+15555555555"
     from_ = (await request.values).get('From')
     to = (await request.values).get('To')
     body = str((await request.values).get('Body', None))
+#    body = temp #temporary test
     print('Message received - From: %s, To: %s, Text: %s' %(from_, to, body))
 
     if body.find("Website Cancel") != -1: #stop sending messages!
@@ -574,7 +597,8 @@ async def inbound_sms():
             pass
 
     else:
-        app.add_background_task(background_task, from_, body)    
+        app.add_background_task(background_task, from_, body)
+        #await background_task(from_, body)    
     #await sendWebsite(from_, body)
     #return 'Message Received'
     response = MessagingResponse().to_xml()
@@ -662,5 +686,13 @@ if __name__ == '__main__':
 
     app.run(host='0.0.0.0', debug=True)
     
+    #Encoding test code:
+    #asyncio.run(inbound_sms("00@(:ÆS3SSøñ$i:oH01t!:G1zOrèU;zö-sWém/ÆWV(/%d¤èQ¤5e-m§Eüx/ùIr'äùàààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà"))
+    #Another test:
+    #asyncio.run(inbound_sms("01@(:ÆS3SSøñ$i:oH01t!:G1zOrèU;zö-sWém/ÆWV(/%d¤èR1¡<N£§ÖeC5§Kå=PäAè,*zÆß2&M;b:jv1%jioim,+L\"neOaJkßYY2JCz9£MMENW¡p'2$;AEæÖS%¡jÇ)Ä_(ÑIaJKf6Rthik¿ò#r¡Ma)ønÄRTaVqÜØ,"))
+    #time.sleep(10)
+    #asyncio.run(inbound_sms("àà@Ø:TØÖq¥Tw(\"KÄhdèM:&4SfÖ¡/eÖ(6¤¥(dÖmS(Göd\nÉE7Q¥,;d#ä<èSuhS>35p\"I%T!4&Bmz¡UFViL.zRààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà"))
+    
+    #Decoding test:
     #smsQueue = ["@@@ìßGAV&ä¿qùOK3uÜ9ì.Æh9+ÉùßñFT_änåNÆ=+éO%3¤ÜèH*¿MÖG9O£7Ag=p_4=òOüIå&l/#WdG-OR*üh¤l9pc\"Ñ*8\'Vk¿E%C\'#øòåèreM2m4ñTnt>¡ß*k_ù=\'j>yÄC:U¥èHf-=1L#\nyÜÜÉzL;¿dòbCLSäM¤.VN\n", "@£@8-S$G2ì:c\"(xMn!ICZRtÜ4:UüjjrWe\"suUÄXEàààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà"]
     #print(decodeIt(smsQueue))

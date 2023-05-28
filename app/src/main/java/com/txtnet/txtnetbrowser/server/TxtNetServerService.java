@@ -689,7 +689,7 @@ In activity:
         boolean containsTld = false;
         boolean containsProtocol = false;
         for(String tld : tlds){
-            if(url.contains(tld)){
+            if(url.contains("."+tld)){
                 containsTld = true;
                 break;
             }

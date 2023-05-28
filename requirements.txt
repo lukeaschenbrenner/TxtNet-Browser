@@ -1,0 +1,10 @@
+beautifulsoup4>=4.11.1
+Brotli>=1.0.9
+htmlmin>=0.1.12
+lxml>=4.9.2
+pyppeteer>=1.0.2
+pyquery>=2.0.0
+quart>=0.18.4
+requests>=2.28.1
+requests_html>=0.10.0
+twilio>=8.2.1
