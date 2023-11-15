@@ -1,7 +1,8 @@
-
 # TxtNet Browser
 ### Browse the Web over SMS, no WiFi or Mobile Data required!
 <p align="center"><img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/app/src/main/ic_launcher-playstore.png" alt="App Icon" width="200"/></p>  
+
+> **⏸️ Development of this project is currently on hiatus due to other ongoing commitments. However, fixes and improvements are planned when development continues in Q1 2024! ⏸️**
 
 TextNet Browser is an Android app that allows anyone around the world to browse the web without a mobile data connection! It uses SMS as a medium of transmitting HTTP requests to a server where a pre-parsed HTML response is compressed using Google's [Brotli](https://github.com/google/brotli) compression algorithm and encoded using a custom Base-114 encoding format (based on [Basest](https://github.com/saxbophone/basest-python)).
 
