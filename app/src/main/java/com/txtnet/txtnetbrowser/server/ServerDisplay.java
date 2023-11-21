@@ -1,5 +1,11 @@
 package com.txtnet.txtnetbrowser.server;
 
+import static com.txtnet.txtnetbrowser.R.string.SDMsg1;
+import static com.txtnet.txtnetbrowser.R.string.SDMsg3;
+import static com.txtnet.txtnetbrowser.R.string.SDMsg4;
+import static com.txtnet.txtnetbrowser.R.string.SDMsg5;
+import static com.txtnet.txtnetbrowser.R.string.SDMsg6;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
@@ -148,7 +154,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                         } else {
                             boolean didAcceptAdb = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE).getBoolean("outdatedAdbAccepted", false);
                             if(!didAcceptAdb){
-                                Toast.makeText(compoundButton.getContext(), "TOD0: Add Instructions for manual ADB on Android 4.4-6 (cant use shizuku)", Toast.LENGTH_LONG).show();
+                                Toast.makeText(compoundButton.getContext(), SDMsg1, Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(compoundButton.getContext(), ShizukuIncompatible.class);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
@@ -244,7 +250,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                 //CharSequence name = getString(R.string.channel_name);
                 CharSequence name = "Server Background Service";
                 //  String description = getString(R.string.channel_description);
-                String description = "Allows TxtNet server to be run in the background.";
+                String description = c.getString(R.string.SDMsg2);
                 int importance = NotificationManager.IMPORTANCE_LOW; // To support devices running Android 7.1 (API level 25) or lower, you must also call
                 // setPriority() for each notification, using a priority constant from the NotificationCompat class.
                 NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
@@ -275,9 +281,9 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
     public void onRequestPermissionResult(int requestCode, int grantResult) {
         boolean isGranted = grantResult == PackageManager.PERMISSION_GRANTED;
         if(!isGranted)
-            Toast.makeText(this, "Shizuku permissions denied!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, SDMsg3, Toast.LENGTH_LONG).show();
         else {
-            Toast.makeText(this, "Shizuku permissions granted!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, SDMsg4, Toast.LENGTH_LONG).show();
             grantPermissions();
         }
     }
@@ -331,13 +337,13 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
             boolean put1 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_max_count", 1_000_000); // 1 million SMS messages every
             boolean put2 = Settings.Global.putInt(getContentResolver(), "sms_outgoing_check_interval_ms", 30000); // 30 seconds
             // Something tells me we won't hit this limit.
-            Toast.makeText(this, "Done. You may need to restart server. This should only be done once.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, SDMsg5, Toast.LENGTH_LONG).show();
             Log.e("put1", String.valueOf(put1));
             Log.e("put2", String.valueOf(put2));
 
 
         }catch(SecurityException se){
-            Toast.makeText(this, "Permission WRITE_SECURE_SETTINGS not obtained!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, SDMsg6, Toast.LENGTH_LONG).show();
 
         }
     }
@@ -404,7 +410,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
                }
 
         } else {
-            Log.e("MY_APP_TAG", "Error: The requested service doesn't " +
+            Log.e("MY_APP_TAG", getString(R.string.SDMsg7) +
                     "exist, or this client isn't allowed access to it.");
         }
     }

@@ -1,5 +1,9 @@
 package com.txtnet.txtnetbrowser;
 
+import static com.txtnet.txtnetbrowser.R.string.MBSMsg1;
+import static com.txtnet.txtnetbrowser.R.string.MBSMsg3;
+import static com.txtnet.txtnetbrowser.R.string.MBSMsg4;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -444,16 +448,16 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length == 0) {
-            Toast.makeText(this, "No permissions granted!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, MBSMsg1, Toast.LENGTH_SHORT).show();
             return;
         }
         for (int i = 0; i < grantResults.length; i++) {
             if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(this, "Permission error: not granted: " + permissions[i], Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.MBSMsg2) + permissions[i], Toast.LENGTH_SHORT).show();
                 return;
             }
         }
-        Toast.makeText(this, "Permissions are accepted! App is now functional.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, MBSMsg3, Toast.LENGTH_SHORT).show();
 
         //enableApp here... we know the permissions are granted by this line.
     }
@@ -674,7 +678,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("URL", linkToCopy);
                 clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "Link copied!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, MBSMsg4, Toast.LENGTH_SHORT).show();
             }
         }
     }

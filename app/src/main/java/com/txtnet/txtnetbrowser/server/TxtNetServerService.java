@@ -228,7 +228,7 @@ In activity:
             pendingIntent = PendingIntent.getActivity(this, 0, intentNotif, PendingIntent.FLAG_UPDATE_CURRENT);
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("TxtNet Server Is Running").setContentText("Press this notification to open the server management screen.")
+                .setContentTitle(getString(R.string.TNSSS1)).setContentText(getString(R.string.TNSSS2))
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_notification_monochrome);
         builder.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE).setVisibility(NotificationCompat.VISIBILITY_SECRET);
@@ -330,7 +330,7 @@ In activity:
 
         // Tell the user we stopped.
        // Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "Server stopped!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.TNSSS3, Toast.LENGTH_SHORT).show();
     }
 
 

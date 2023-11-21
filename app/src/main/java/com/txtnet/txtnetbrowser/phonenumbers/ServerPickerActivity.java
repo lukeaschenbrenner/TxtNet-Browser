@@ -1,5 +1,7 @@
 package com.txtnet.txtnetbrowser.phonenumbers;
 
+import static com.txtnet.txtnetbrowser.R.string.serverPickerActivityMsg1;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -62,7 +64,7 @@ public class ServerPickerActivity extends AppCompatActivity {
         boolean needsDefault = intent.getBooleanExtra("needDefault", false);
         if(needsDefault){
             ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
-            Snackbar snackbar = Snackbar.make(view.getRootView(), "Please enter a phone number and select it as default!", Snackbar.LENGTH_LONG).setAction("OK", null);
+            Snackbar snackbar = Snackbar.make(view.getRootView(), serverPickerActivityMsg1, Snackbar.LENGTH_LONG).setAction("OK", null);
             //snackbar.setAnchorView(getWindow().getDecorView());
             snackbar.show();
         }
@@ -121,7 +123,7 @@ public class ServerPickerActivity extends AppCompatActivity {
             public void instantiateUnderlayButton(RecyclerView.ViewHolder viewHolder, List<UnderlayButton> underlayButtons) {
                 ServerViewHolder holder = (ServerViewHolder) viewHolder;
                 underlayButtons.add(new SwipeHelper.UnderlayButton(
-                        "DELETE",
+                        getString(R.string.serverPickerActivityMsg2),
                         0,
                         Color.parseColor("#FF3C30"),
                         new SwipeHelper.UnderlayButtonClickListener() {
