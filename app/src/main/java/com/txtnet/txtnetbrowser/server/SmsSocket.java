@@ -149,13 +149,22 @@ public class SmsSocket {
         }
         outputNumber += phoneNumber.getNationalNumber();
 
+
+        String processStarting = " Process starting,";
+
         if(smsQueue.size() > MAX_SMS_PER_REQUEST){
             Log.w(TAG, "Request made with SMS count > MAX_SMS_PER_REQUEST");
             String encodedErrorMsg = createEncodedQueue(service.getString(R.string.request_sms_outgoing_exceeded_error)).get(0);
+            sms.sendTextMessage(outputNumber, null, "1" + processStarting, null, null);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             sms.sendTextMessage(outputNumber, null, encodedErrorMsg, null, null);
             return;
         }
-        String processStarting = " Process starting,";
+
         int numberOfDigitsSMSQueue = smsQueue.isEmpty() ? 0 : (int) (Math.log10(smsQueue.size()) + 1);
         String titleClipped = pageTitle.substring(0, Math.min(pageTitle.length(), (160 - (processStarting.length() + numberOfDigitsSMSQueue))));
         sms.sendTextMessage(outputNumber, null, (smsQueue.size() + processStarting + titleClipped), null, null);
