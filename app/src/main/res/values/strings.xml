@@ -16,9 +16,9 @@
         "No further SMS messages are initiated by the phone number until another opt-in request is made by the user (noted by the submission of a request).\n\n"
 
         "The phone number hoster is not liable for any effects of receiving SMS messages from the phone number, such as an increase in storage utilization or app crashes."
-        "You agree that user data (your phone number and request URL) will be stored by the phone number hoster, until they clear their SMS message history. The developers' server instance automatically clears SMS logs at least every 30 days.\n\n"
+        "You agree that user data (your phone number and request URL) will be stored by the phone number hoster, until they clear their SMS message history. The developers' server instance automatically removes SMS logs with a retention period not exceeding 30 days.\n\n"
         "If a user makes a request to a website that infringes on the laws of the jurisdiction where the server resides physically, the user, and not the server hoster, shall be deemed legally responsible for all repercussions when possible to the fullest extent of the law."
-        "The developers recommend that SMS logs are cleared frequently by the server hoster so that relevant authorities cannot enforce unjust censorship laws upon either the user or the server hoster for accessing websites (specifically, those legal under U.S. law as of 2022, but not legal under the laws of the server's current jurisdiction.)"
+        "The developers recommend that SMS logs are cleared frequently by the server hoster so that relevant authorities cannot enforce unjust censorship laws upon either the user or the server hoster for accessing websites (specifically, those legal under U.S. law as of current year, but not legal under the laws of the server's current jurisdiction.)"
         "Because the app is open source, the developers of the app cannot guarantee that user privacy and SMS limitations are guaranteed when connecting to a server phone number provided by a third party source.\n"
         "If you are concerned about sending SMS messages to an unknown party, we encourage you to host your own TxtNet Server instance.\n\n"
     </string>
@@ -67,6 +67,6 @@
         Once both commands have been run, click the button below to continue.
         </string>
     <string name="shizuku_incompatible_continue">Reload module</string>
-    <string name="request_sms_outgoing_exceeded_error">Error: Request Exceeded Max SMS Limit</string>
+    <string name="request_sms_outgoing_exceeded_error">&lt;p&gt;Error: Your request Exceeded Max SMS Limit. The website requested was too large.&lt;p&gt;</string>
     <string name="newServerInfoStr">Input a phone number that you would like to connect to.\nThe number must be hosting a TxtNet Server instance.\nNOTE: If you do not wish to use client features and only wish to host a server,\nplease input an fake number such as\n+15555555555</string>
 </resources>

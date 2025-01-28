@@ -142,7 +142,7 @@ class smsDecoder(Encoder):
 #r = requests.get('https://www.almanac.com/content/how-tie-knots')
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 6 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.97 Mobile Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 15; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.6834.122 Mobile Safari/537.36',
 }
 async def get_website(url):
     #session = AsyncHTMLSession(browser_args=["--proxy-server=socks5://127.0.0.1:1080", "--host-resolver-rules=\"MAP * ~NOTFOUND , EXCLUDE 127.0.0.1\""])    

@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk tools:overrideLibrary="rikka.shizuku.provider, rikka.shizuku.api, rikka.shizuku.shared, rikka.shizuku.aidl" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="true" />
 
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
@@ -26,13 +29,13 @@
 
     <application
         android:allowBackup="true"
-        android:autoRevokePermissions="disallowed"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:resizeableActivity="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:windowOptOutEdgeToEdgeEnforcement="true">
         <activity
             android:name=".blockingactivities.ShizukuIncompatible"
             android:exported="false"
@@ -62,8 +65,9 @@
         <activity
             android:name=".MainBrowserScreen"
             android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/Theme.TxtNetBrowser.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

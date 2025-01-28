@@ -19,7 +19,7 @@ public class MyWebView extends WebView {
         super(context);
         this.setWebViewClient(webViewClient);
 
-        getSettings().setJavaScriptEnabled(false);
+        //getSettings().setJavaScriptEnabled(false);
         getSettings().setUseWideViewPort(true);
         getSettings().setLoadWithOverviewMode(true);
         getSettings().setSupportZoom(true);

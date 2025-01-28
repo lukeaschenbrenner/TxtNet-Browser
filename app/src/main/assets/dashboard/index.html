@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="assets/alpinejs@3.14.8.min.js" defer></script>
+    <script src="assets/tailwindcss@3.4.16.js"></script>
+</head>
+<body class="bg-blue-50 text-gray-800">
+<div class="min-h-screen flex flex-col items-center" x-data="{
+        categories: ['Search Engines', 'Weather', 'News', 'Sports', 'Cooking', 'Navigation', 'Miscellaneous'],
+        links: {
+            'Search Engines': [
+                { name: 'FrogFind', description: 'A DuckDuckGo-powered search engine that proxies all results in plaintext', url: 'http://frogfind.com/?q=', modalText: 'Enter your search query:'},
+                { name: 'DuckDuckGo Simple', description: 'A simple search experience from DuckDuckGo themselves, with website names and full descriptions.', url: 'https://html.duckduckgo.com/html?q=', modalText: 'Enter your search query:' },
+                { name: 'DuckDuckGo Lite', description: 'Another official DuckDuckGo search client, even more trimmed down for basic searching. Contains up to 10 results per page and single-line descriptions.', url: 'https://lite.duckduckgo.com/lite/?q=', modalText: 'Enter your search query:' },
+                { name: 'Wiby.me', description: 'A hobbyist web search engine which mostly contains basic websites from the early 2000s.', url: 'https://wiby.me/?q=', modalText: 'Enter your search query:' }
+            ],
+            'Weather': [
+                { name: 'Wttr.In', description: 'A simple display of the weather for a user-input location including cloud cover, temperature, and wind speed. Only a small amount of data is required.', url: 'https://wttr.in/', suffix: '?format=4', modalText: 'Enter the name of a city or zip code:' }
+            ],
+            'News': [
+                { name: 'CNN Latest Lite', description: 'An official text-only collection of the latest CNN story headlines, with links to view each story in full.', url: 'http://lite.cnn.com' },
+                { name: '68k.news', description: 'All top Google News stories with headlines and up to 5 individual sources for each. When you select a headline, the site attempts to display the article in plaintext.', url: 'http://68k.news/index.php?loc=US'},
+                { name: 'Reuters (Neuters)', description: 'An unofficial text-only frontend for the latest Reuters World articles. View each article in plaintext.', url: 'https://neuters.de/'},
+                { name: 'Daily Mail UK Lite', description: 'The official Daily Mail newsfeed with single-line previews of each headline. ⚠️This site can display up to 100 articles, which requires a lot of data.', url: 'https://www.dailymail.co.uk/textbased/channel-561/index.html' },
+                { name: 'Christian Science Monitor Lite', description: 'The official Christian Science Monitor newsfeed with single-line previews of each headline. ⚠️This site displays 5 previews for 9 categories, which may require a lot of data.', url: 'https://www.csmonitor.com/text_edition' },
+                { name: 'NPR News Lite', description: 'An official NPR News viewer that displays the top 20 News headlines with links to text-only articles of each.', url: 'https://text.npr.org/1001' },
+                { name: 'CBC Lite', description: 'An official text-only collection of the latest CBC story headlines, with links to view each story in a stripped-down viewer.', url: 'https://www.cbc.ca/lite/news?sort=latest' },
+                { name: 'POST Online Media Lite Edition', description: 'The official POST Online Media newsfeed with single-line previews of each headline.', url: 'https://lite.poandpo.com/news' },
+                { name: 'Legible News', description: 'An independent self-described \'educational\' news site that lists 5-10 stories for the day, including a short summary of the event with links to primary sources.', url: 'https://legiblenews.com/' },
+                { name: '(Dutch) Nederlandse Omroep Stichting Lite', description: 'A Dutch public broadcasting outlet with top headlines and plaintext articles in Dutch.', url: 'https://noslite.nl/' }
+            ],
+            'Sports': [
+                { name: 'PlainTextSports', description: 'A list of scores for the current day\'s games from all major leagues across multiple sports.', url: 'https://plaintextsports.com/' }
+            ],
+            'Cooking': [
+                { name: 'Climate-Friendly Cooking', description: 'A list of \'climate-friendly\' recipes.', url: 'https://climate-friendly-cooking.com/recipe/' },
+                { name: 'Dotnom', description: 'A website to search and view short plaintext recipes by ingredients.', url: 'https://dotnom.com/' }
+            ],
+            'Navigation': [
+                { name: 'Text-Based Google Directions', description: 'Supports walking, driving, biking, and public transit directions between any two locations using Google Maps data.', url: 'https://gdir.telae.net/basic.html' }
+            ],
+            'Miscellaneous': [
+                { name: 'Gopherpedia', description: 'A collection of featured Wikipedia articles, as well as the most recently-edited pages, all in plaintext. Currently, search is not supported.', url: 'https://gopherpedia.com/' }
+            ]
+        },
+        selectedCategory: 'Search Engines',
+        open: false,
+        modalText: '',
+        modalUrl: '',
+        input: '',
+        suffix: ''
+    }">
+    <!-- Header -->
+    <header class="py-4 bg-white shadow-md w-full flex justify-between items-center px-6">
+        <h1 class="text-xl font-bold text-blue-600 justify-center">TxtNet Browser Quicklinks</h1>
+        <a href="about.html"><button class="bg-blue-100 text-blue-700 font-medium px-4 py-2 rounded-lg">About</button></a>
+    </header>
+
+    <!-- Category Carousel -->
+    <div class="flex overflow-x-auto py-4 space-x-4 w-full px-6">
+        <template x-for="category in categories" :key="category">
+            <button
+                    x-bind:class="selectedCategory === category ? 'bg-blue-200 text-blue-800' : 'bg-blue-100 text-blue-700'"
+                    class="font-medium px-4 py-2 rounded-lg"
+                    x-on:click="selectedCategory = category">
+                <span x-text="category"></span>
+            </button>
+        </template>
+    </div>
+
+    <!-- Links Section -->
+    <div class="w-full max-w-md px-4 space-y-4">
+        <template x-for="link in links[selectedCategory]" :key="link.name">
+            <div class="flex items-center justify-between bg-white shadow-md p-4 rounded-lg">
+                <div>
+                    <h2 class="text-lg font-bold" x-text="link.name"></h2>
+                    <p class="text-sm text-gray-600" x-text="link.description"></p>
+                </div>
+                <template x-if="!link.modalText">
+                    <a :href="link.url" class="bg-blue-600 text-white font-medium px-4 py-2 rounded-lg">Visit</a>
+                </template>
+                <template x-if="link.modalText">
+                    <button
+                            class="bg-blue-600 text-white font-medium px-4 py-2 rounded-lg"
+                            x-on:click="open = true; modalText = link.modalText; modalUrl = link.url; if(link.suffix){suffix = link.suffix;}">
+                        Enter Input
+                    </button>
+                </template>
+            </div>
+        </template>
+    </div>
+
+<!-- Modal -->
+<div x-show="open" x-cloak class="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50" x-transition>
+    <div class="bg-white w-11/12 max-w-md rounded-lg shadow-lg p-6 border border-black">
+        <h3 class="text-lg font-bold mb-4" x-text="modalText"></h3>
+        <input type="text" x-model="input" placeholder="Enter your input" class="w-full border border-gray-300 rounded-lg p-2 mb-4">
+        <div class="flex justify-end space-x-2">
+            <button x-on:click="open = false; input = ''" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">Cancel</button>
+            <button
+                    x-on:click="if(input && suffix) { var lSuffix = suffix; suffix = ''; window.location.href = modalUrl + input + lSuffix; } else if(input){ window.location.href = modalUrl + input; }"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                Go
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>
+

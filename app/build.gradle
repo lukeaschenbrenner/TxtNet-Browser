@@ -2,19 +2,15 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
-repositories {
-    maven { url "https://jitpack.io" }
-    mavenCentral()
-}
 android {
-    compileSdk 33
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.txtnet.txtnetbrowser"
         //minSdk 19
-        targetSdk 33
-        versionCode 214
-        versionName "2.1.4"
+        targetSdk 35
+        versionCode 220
+        versionName "2.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
@@ -36,7 +32,8 @@ android {
             minSdkVersion 21
             dimension "version"
             //            applicationIdSuffix ".demo"
-            //            versionNameSuffix "-demo"
+            versionNameSuffix "-dev"
+
 
         }
         prod {
@@ -70,10 +67,12 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        //coreLibraryDesugaringEnabled true
     }
     namespace 'com.txtnet.txtnetbrowser'
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     kotlinOptions {
         jvmTarget = '1.8'
@@ -81,13 +80,14 @@ android {
 }
 
 dependencies {
+    implementation 'io.github.lukeaschenbrenner:Brotli4Droid:1.1.0'
 
+    //coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.core:core-ktx:1.10.0'
-    implementation files('libs/brotli4droid-release.aar')
     implementation 'androidx.navigation:navigation-fragment:2.5.3'
     implementation 'androidx.navigation:navigation-ui:2.5.3'
     testImplementation 'junit:junit:4.13.2'

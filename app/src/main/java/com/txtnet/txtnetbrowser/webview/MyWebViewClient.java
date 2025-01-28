@@ -26,18 +26,30 @@ public class MyWebViewClient extends WebViewClient {
             return false;
         }
 
-        TextMessageHandler handler = TextMessageHandler.getInstance();
+        TextMessageHandler handler = null;
+
+        try{
+            handler = TextMessageHandler.getInstance();
+        }
+        catch(NullPointerException npe){
+            Log.e(MyWebViewClient.class.getName(), "SMS Handler is null!");
+            return true;
+        }
 
         //                webView.clearFormData(); does this do something useful?
 //        if(!url.contains("http") && !url.contains("//") && !url.contains("STOP") && !url.contains("unstop") && !url.contains("Website Cancel"))
 //            url = view.getUrl() + url;
-        TextMessage.url = url;
 
-        if(!(url.equals("about:blank") || url.equals("about:blank#blocked"))){
+        if(!(url.equals("about:blank") || url.equals("about:blank#blocked") || url.startsWith("file:///"))){
+            TextMessage.url = url;
+            assert handler != null;
             handler.sendTextMessage(url);
         }
-
-        s.UpdateMyText(url);
+        if(!url.startsWith("file:///")){
+            s.UpdateMyText(url);
+        }else{
+            return false;
+        }
 
         return true;
     }

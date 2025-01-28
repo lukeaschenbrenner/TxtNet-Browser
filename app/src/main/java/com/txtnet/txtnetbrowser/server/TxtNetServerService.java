@@ -84,6 +84,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import kotlin.collections.CollectionsKt;
 import rikka.shizuku.Shizuku;
 import org.jsoup.*;
 import org.jsoup.nodes.Attribute;
@@ -624,15 +625,18 @@ In activity:
                         } else {
                             //Log.i("Early HTML", html);
 
-                            String unescaped = html.substring(1, html.length() - 1)  // remove wrapping quotes
-                                    .replace("\\\\", "\\")        // unescape \\ -> \
-                                    .replace("\\\"", "\"");       // unescape \" -> "
+                            String unescaped = html.substring(1, html.length() - 1);  // remove wrapping quotes
+
+                            // I should probably just let the Apache Utils unescape these as well
+                                    //.replace("\\\\", "\\")        // unescape \\ -> \
+                                    //.replace("\\\"", "\"");       // unescape \" -> "
                             downloadedHTML[0] = unescaped;
                         }
+                        String pageTitle = webview.getTitle() != null ? webview.getTitle() : "Untitled";
                         //Jsoup.parse(StringEscapeUtils.unescapeJava(downloadedHTML[0])).html().substring(0, 10));
                         String output = sanitizeHtml(StringEscapeUtils.unescapeJava(downloadedHTML[0]));
                         SmsSocket currentSocket = socketAssociatedWithWebViews[webViews.indexOf(webview)];
-                        currentSocket.sendHTML(output);
+                        currentSocket.sendHTML(output, pageTitle);
                         socketAssociatedWithWebViews[webViews.indexOf(webview)] = null;
 
                         try{
@@ -741,10 +745,18 @@ In activity:
         base = c.clean(base);
         //Log.i("HTML", "After clean HTML: " + base.outerHtml());
 
-        Elements tags = base.getAllElements();
-        for (Element e : tags) {
-            if (e.tagName().equals("div")) {
-                e.unwrap();
+        //Typically, <div> tags are used to wrap other block-level HTML content for JS/CSS reasons.
+        //However, they are a waste of space for HTML-only rendering outside of being line-separated.
+        Elements divTags = base.getElementsByTag("div");
+        for (Element div : divTags) {
+            boolean allChildrenAreInline = CollectionsKt.filter(div.children(), Element::isBlock).isEmpty(); //div.children().stream().allMatch(child -> !child.isBlock());
+            boolean hasDirectTextContent = !div.wholeOwnText().isBlank();
+
+            if (hasDirectTextContent || (allChildrenAreInline && div.childrenSize() > 0)) {
+                Element pTag = new Element("p").html(div.html());
+                div.replaceWith(pTag);
+            }else{
+                div.unwrap();
             }
         }
         //Log.i("HTML", "After unwrap: " + base.outerHtml());

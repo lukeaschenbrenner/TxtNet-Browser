@@ -5,6 +5,7 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:textColorHint">@color/secondary_hint</item>
+
     </style>
 
     <style name="BaseAppDarkTheme" parent="Theme.AppCompat.Light.NoActionBar">

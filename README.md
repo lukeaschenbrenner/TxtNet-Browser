@@ -1,21 +1,22 @@
-# TxtNet Browser
+﻿# TxtNet Browser
 ### Browse the Web over SMS, no WiFi or Mobile Data required!
 <p align="center"><img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/app/src/main/ic_launcher-playstore.png" alt="App Icon" width="200"/></p>  
 
-> **⏸️ Development of this project is currently on hiatus due to other ongoing commitments. However, fixes and improvements are planned when development continues in Q1 2024! ⏸️**
+> Please see [this discussion post](https://github.com/lukeaschenbrenner/TxtNet-Browser/discussions/40) for updates on the status of this app's development.
 
-TextNet Browser is an Android app that allows anyone around the world to browse the web without a mobile data connection! It uses SMS as a medium of transmitting HTTP requests to a server where a pre-parsed HTML response is compressed using Google's [Brotli](https://github.com/google/brotli) compression algorithm and encoded using a custom Base-114 encoding format (based on [Basest](https://github.com/saxbophone/basest-python)).
+TextNet Browser is an Android app that allows anyone around the world to browse the web without a mobile data connection! It uses SMS as a medium of transmitting HTTP requests to a server where a pre-parsed HTML response is compressed using Google's [Brotli](https://github.com/google/brotli) compression algorithm and encoded using a custom Base-114 encoding format (based on [Basest](https://github.com/saxbophone/basest-python)). All media content, JavaScript, and CSS are removed from the page, but websites that require JavaScript will still render and display. Only HTTP GET requests are implemented.
 
-In addition, any user can act as a server using their own phone's primary phone number and a Wi-Fi/data connection at the press of a button, allowing for peer-to-peer distributed networks.
+The app also contains TxtNet Server, a background service that enables your own phone, using its primary phone number and a Wi-Fi/data connection, to process requests by any other phones that don't have an internet connection. This means that if you have a phone that has internet access and SMS, you can host your own server without any technical knowledge at the press of a button! See "Server Hosting" below for setup instructions.
 
 ## Download
-### See the **[releases page](https://github.com/lukeaschenbrenner/TxtNet-Browser/releases)** for an APK download of the TxtNet Browser client. A Google Play release is coming soon.
-TxtNet Browser is currently compatible with Android 4.4-13+.
+### See the **[releases page](https://github.com/lukeaschenbrenner/TxtNet-Browser/releases)** for an APK download of the TxtNet Browser client.
+TxtNet Browser is currently compatible with **Android 4.4 (KitKat) and up** (yes, your old phone can still install it!)
+A Google Play and F-Droid release is planned, but with low priority.
 
-## Running Server Instances (uptime not guaranteed)
+## Public Server Instances
 | Country      | Phone Number | Notes     |
 | :---        |    :----:   | :---        |
-| United States      | +1(913)203-2719 | Supports SMS to all +1 (US/Canada) numbers in addition to [these countries](https://github.com/lukeaschenbrenner/TxtNet-Browser/issues/2#issuecomment-1510506701)   |
+| United States      | +1(913)203-2719 | Uptime is low. Supports SMS to all +1 (US/Canada) numbers in addition to [these countries](https://github.com/lukeaschenbrenner/TxtNet-Browser/issues/2#issuecomment-1510506701). May be phased out by late 2025.   |
 |    |      |     |
 
 Let me know if you are interested in hosting a server instance for your area!
@@ -41,7 +42,7 @@ For Android 4.4-6.0, you will need to run adb commands one time as specified in 
 
 
 ##### Desktop Server Installation (Deprecated)
-<strike>  
+<details>
  The current source code is pointed at my own server, using a Twilio API with credits I have purchased. If you would like to run your own server, follow the instructions below:  
 1. Register for an account at [Twilio](https://twilio.com/), purchase a toll-free number with SMS capability, and purchase credits. (This project will not work with Twilio free accounts)  
 2. Create a Twilio application for the number.  
@@ -51,19 +52,20 @@ For Android 4.4-6.0, you will need to run adb commands one time as specified in 
 6. Download the TxtNet Browser [server script](https://github.com/lukeaschenbrenner/TxtNet-Browser/blob/master/SMS_Server_Twilio.py) and install all the required modules using "pip install x"  
 7. Add your Twilio API ID and Key into your environment variables, and run the script! `python3 ./SMS_Server_Twilio.py`  
 8. In the TxtNet Browser app, press the three dots and press "Change Server Phone Number". Enter in the phone number you purchased from Twilio and press OK!  
-</strike>  
+</details>
 
 ## FAQ/Troubleshooting
 
 Bugs:
 - Many carriers are unnecessarily rate limiting incoming text messages, so a page may look as though it "stalled" while loading on large pages. As of now the only way to fix this is to wait!
-- In congested networks, it's possible for a mobile carrier to drop one or more SMS messages before they are recieved by the client. Currently, the app has no logic to mitigate this issue, so any websites that have stalled for a significant amount of time should be requested again.
+- In congested networks, it's possible for a mobile carrier to drop one or more SMS messages before they are received by the client. Currently, the app has no logic to mitigate this issue, so any websites that have stalled for a significant amount of time should be requested again.
 - In Android 12 (or possibly a new version of Google Messages?), there is a new and "improved" messages blocking feature. This results in no SMS messages getting through when a number is blocked, which makes the blocking feature of TxtNet Browser break the app! Instead of blocking messages, to get around this "feature", you can silent message notifications from the server phone number.  
-  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/>
-  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/Messages_Migrating_Popup.png" alt="Contacts Popup" width="200"/>  
-  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/MigratingBlockedContacts.png" alt="Migrating Contacts" width="200"/>  
 
-## Screenshots (TxtNet 1.0)
+|  |  |  |
+|--|--|--|
+|  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/>  |  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/Messages_Migrating_Popup.png" alt="Contacts Popup" width="200"/>   |   <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/MigratingBlockedContacts.png" alt="Migrating Contacts" width="200"/>  |
+
+## Screenshots (Outdated, TxtNet 1.0.0)
 
 <table>  
   <tr>  
@@ -77,7 +79,7 @@ Bugs:
   </tr>  
 </table>
 
-##### Demo (TxtNet 1.0)
+##### Demo (Outdated, TxtNet 1.0.0)
 
 https://user-images.githubusercontent.com/5207700/191133921-ee39c87a-c817-4dde-b522-cb52e7bf793b.mp4
 
@@ -86,8 +88,9 @@ https://user-images.githubusercontent.com/5207700/191133921-ee39c87a-c817-4dde-b
 
 ## Development
 
-### 🚧 **If you are skilled in Android UI design, your help would be greatly appreciated!** 🚧 A consistent theme and dark mode would be great additions to this app.
-Feel free to submit pull requests! I am a second-year CS student with basic knowledge of Android Development and Server Development, and greatly appreciate help and support from the community.
+### 🚧 **If you are skilled in Android UI design, your help would be greatly appreciated!** 🚧 
+Feel free to submit pull requests! As you may be able to tell when using the app, UI/UX is not my forte and some areas are seriously lacking. Because of the goal of maintaining wide support for Android 4.4+, libraries like Compose aren't compatible natively.
+Reach out to me if you'd like to be a major contributor in any aspect of the app - I would greatly appreciate the help.
 
 ## Future Impact
 My long-term goal with this project is to eventually reach communities where such a service would be practically useful, which may include:

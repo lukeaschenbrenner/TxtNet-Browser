@@ -409,8 +409,10 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             @Override
             public void onClick(View v) {
 
+                webView.getSettings().setJavaScriptEnabled(true);
 
-                webView.loadUrl("file:///android_asset/welcome.md.html");
+                webView.loadUrl("file:///android_asset/dashboard/index.html");
+                urlEditText.setText("");
                 //urlEditText.setText(url);
 
                 //TextMessageHandler.getInstance().sendTextMessage(urlEditText.getText().toString());
@@ -430,7 +432,8 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             TextMessageHandler.getInstance().sendTextMessage(url);
             urlEditText.setText(url);
         }else{
-            webView.loadUrl("file:///android_asset/welcome.md.html");
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.loadUrl("file:///android_asset/dashboard/index.html");
         }
 
     }

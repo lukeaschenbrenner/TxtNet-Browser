@@ -139,10 +139,9 @@ public class TextMessage {
     byte[] integersToBytes(int[] values) throws IOException { // Don't know if this method works?
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        for(int i=0; i < values.length; ++i)
-        {
+        for (int value : values) {
             //dos.writeInt(values[i]);
-            dos.writeByte(values[i]);
+            dos.writeByte(value);
         }
 
         return baos.toByteArray();

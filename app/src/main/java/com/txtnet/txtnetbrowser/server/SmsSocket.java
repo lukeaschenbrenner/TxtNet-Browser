@@ -3,46 +3,25 @@ package com.txtnet.txtnetbrowser.server;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.v2r;
 
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.telephony.SmsManager;
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.txtnet.brotli4droid.Brotli4jLoader;
-import com.txtnet.brotli4droid.decoder.BrotliInputStream;
 import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
-import com.txtnet.brotli4droid.encoder.Encoder;
-import com.txtnet.txtnetbrowser.MainBrowserScreen;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
-import com.txtnet.txtnetbrowser.basest.Decode;
 import com.txtnet.txtnetbrowser.basest.Encode;
-import com.txtnet.txtnetbrowser.receiver.SmsDeliveredReceiver;
-import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
 import com.txtnet.txtnetbrowser.util.Index;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,8 +49,7 @@ public class SmsSocket {
         outputMessagesBuffer = new ArrayList<>();
     }
 
-    public void sendHTML(String html){
-
+    public ArrayList<String> createEncodedQueue(String plainTextHTML){
         ByteArrayOutputStream brotliOutput = new ByteArrayOutputStream();
         Brotli4jLoader.ensureAvailability();
         //Log.i(TAG, "Brotli4J is available? " + (Brotli4jLoader.isAvailable() ? "true" : "false"));
@@ -83,7 +61,7 @@ public class SmsSocket {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        BufferedReader bufReader = new BufferedReader(new StringReader(html));
+        BufferedReader bufReader = new BufferedReader(new StringReader(plainTextHTML));
         String line=null;
         assert brotliWriter != null;
 
@@ -149,11 +127,19 @@ public class SmsSocket {
             //if(k == smsQueue.size()-1){
             //    smsQueue.set(k, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(k));
             //}else{
-                smsQueue.set(k, indexCharacters[k] + smsQueue.get(k));
+            smsQueue.set(k, indexCharacters[k] + smsQueue.get(k));
             //}
         }
+        return smsQueue;
+    }
 
-        int howManyTextsToExpect = (smsQueue.size());
+    public void sendHTML(String html){
+        this.sendHTML(html, "Untitled");
+    }
+
+    public void sendHTML(String html, String pageTitle){
+
+        ArrayList<String> smsQueue = createEncodedQueue(html);
 
         SmsManager sms = SmsManager.getDefault();
 
@@ -163,13 +149,16 @@ public class SmsSocket {
         }
         outputNumber += phoneNumber.getNationalNumber();
 
-        if(howManyTextsToExpect > MAX_SMS_PER_REQUEST){
+        if(smsQueue.size() > MAX_SMS_PER_REQUEST){
             Log.w(TAG, "Request made with SMS count > MAX_SMS_PER_REQUEST");
-            sms.sendTextMessage(outputNumber, null, service.getString(R.string.request_sms_outgoing_exceeded_error), null, null);
+            String encodedErrorMsg = createEncodedQueue(service.getString(R.string.request_sms_outgoing_exceeded_error)).get(0);
+            sms.sendTextMessage(outputNumber, null, encodedErrorMsg, null, null);
             return;
         }
-
-        sms.sendTextMessage(outputNumber, null, howManyTextsToExpect + " Process starting", null, null);
+        String processStarting = " Process starting,";
+        int numberOfDigitsSMSQueue = smsQueue.isEmpty() ? 0 : (int) (Math.log10(smsQueue.size()) + 1);
+        String titleClipped = pageTitle.substring(0, Math.min(pageTitle.length(), (160 - (processStarting.length() + numberOfDigitsSMSQueue))));
+        sms.sendTextMessage(outputNumber, null, (smsQueue.size() + processStarting + titleClipped), null, null);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
