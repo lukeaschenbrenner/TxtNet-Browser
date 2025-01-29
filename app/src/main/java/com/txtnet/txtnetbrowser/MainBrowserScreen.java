@@ -619,7 +619,9 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
         progressCircle.setProgress(newProgress);
         loadProgressTV.setText(newProgress + "/" + total);
         if(siteTitle != null){
-            siteTitleTV.setText(siteTitle);
+            siteTitleTV.setText("[ " + siteTitle + " ]");
+        }else{
+            siteTitleTV.setText("[ " + R.string.current_site_title_is_not_provided + " ]");
         }
 
         if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {

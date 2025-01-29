@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class ServerUtils {
     // Subset of 3GPP TS 23.038 Standard's Basic Character Set, as mobile carriers do not seem to 100% follow this standard
-    public static String TS0338SafeString(String input) {
+    public static String TS0338SafeString(String input, boolean allowSpaceBar) { //A trailing space bar is truncated by mobile carriers so it cannot be used for lossless transmissions.
         if (input == null) {
             throw new IllegalArgumentException("Input must not be null");
         }
@@ -18,6 +18,9 @@ public class ServerUtils {
         for (String s : Base10Conversions.SYMBOL_TABLE) {
             assert s.length() == 1;
             allowedCodePoints.add(s.codePointAt(0));
+        }
+        if(allowSpaceBar){
+            allowedCodePoints.add(" ".codePointAt(0));
         }
 
         StringBuilder sb = new StringBuilder(input.length());
