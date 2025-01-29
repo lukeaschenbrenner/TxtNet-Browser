@@ -243,9 +243,17 @@ public class TextMessageHandler {
                 String origin = messages[0].getOriginatingAddress();
 
                 if(PhoneNumberUtils.compare(origin, PHONE_NUMBER)) { //remove leading zeroes?
-                    if (Message.toString().contains("Process starting")) {
+                    String fullMessage = Message.toString();
+                    String processStarting = "Process starting";
+                    String siteTitle = null;
+                    if (fullMessage.contains(processStarting)) {
+
+                        int v_2_2_0_processStartingBeginIndex = fullMessage.indexOf(processStarting + ","); // Server version 2.2.0 added the site title to the initializer message as metadata.
+                        if (v_2_2_0_processStartingBeginIndex != -1 && v_2_2_0_processStartingBeginIndex + (processStarting + ",").length() < fullMessage.length()) { // To succeed, the server needs to be updated AND the site needs to include a title.
+                            siteTitle = fullMessage.substring(v_2_2_0_processStartingBeginIndex + (processStarting + ",").length());
+                        }
                         Log.d("amt msgs", Message.substring(0, Message.indexOf(" ")));
-                        txtmsg = new TextMessage(Integer.parseInt(Message.substring(0, Message.indexOf(" "))), context);
+                        txtmsg = new TextMessage(Integer.parseInt(Message.substring(0, Message.indexOf(" "))), context, siteTitle);
                     } else {
                         // for (int single : Base10Conversions.r2v(Message.substring(0, 2))) {
                         //     Log.d("order number: ", String.valueOf(single));

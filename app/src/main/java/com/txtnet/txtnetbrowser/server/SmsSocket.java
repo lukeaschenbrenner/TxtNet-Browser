@@ -166,7 +166,8 @@ public class SmsSocket {
         }
 
         int numberOfDigitsSMSQueue = smsQueue.isEmpty() ? 0 : (int) (Math.log10(smsQueue.size()) + 1);
-        String titleClipped = pageTitle.substring(0, Math.min(pageTitle.length(), (160 - (processStarting.length() + numberOfDigitsSMSQueue))));
+        String safeTitle = ServerUtils.TS0338SafeString(pageTitle);
+        String titleClipped = safeTitle.substring(0, Math.min(safeTitle.length(), (160 - (processStarting.length() + numberOfDigitsSMSQueue))));
         sms.sendTextMessage(outputNumber, null, (smsQueue.size() + processStarting + titleClipped), null, null);
         try {
             Thread.sleep(1000);

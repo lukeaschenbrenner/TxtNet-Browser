@@ -34,19 +34,21 @@ public class TextMessage {
     private int howManyAdded = 0;
     public String[] textBuffer = null;
     public static String url;
+    private String siteTitle;
     //public boolean isUserRequest = false;
     Context context;
     /**
      * Constructs a new TextMessage object that allows for the use of a String buffer to represent a text message.
      * @param sizeOfParts size of the buffer (in terms of parts)
      */
-    public TextMessage(int sizeOfParts, Context context){
+    public TextMessage(int sizeOfParts, Context context, String siteTitle){
         this.context = context;
         if(sizeOfParts < 0){
             Log.e(TAG, "******* ERROR: SIZE OF PARTS IS NEGATIVE");
             return;
         }
         textBuffer = new String[sizeOfParts];
+        this.siteTitle = siteTitle;
     }
 
     public void addPart(int index, String part) throws Exception {
@@ -62,7 +64,7 @@ public class TextMessage {
             }
             textBuffer[index] = part;
             howManyAdded++;
-            MainBrowserScreen.onProgressChanged(howManyAdded, textBuffer.length);
+            MainBrowserScreen.onProgressChanged(howManyAdded, textBuffer.length, siteTitle);
 
         }
 

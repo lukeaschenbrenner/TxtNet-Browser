@@ -87,7 +87,7 @@ public class MainBrowserScreen extends AppCompatActivity {
     public static SwipeRefreshLayout swipe;
     EditText urlEditText;
     public static ProgressBar progressBar;
-    public static TextView loadProgressTV;
+    public static TextView loadProgressTV, siteTitleTV;
     public static ConstraintLayout progressIndicatorBg;
     public static CircularProgressIndicator progressCircle;
     ImageButton back, forward, stop, refresh, homeButton, goButton;
@@ -183,6 +183,8 @@ public class MainBrowserScreen extends AppCompatActivity {
             progressCircle.setVisibility(View.GONE);
             loadProgressTV = (TextView) findViewById(R.id.loadProgressTextView);
             loadProgressTV.setVisibility(TextView.GONE);
+            siteTitleTV = (TextView) findViewById(R.id.siteTitleTextView);
+            siteTitleTV.setVisibility(TextView.GONE);
             webView = findViewById(R.id.web_view);
 //        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
@@ -610,25 +612,29 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
 
     }
 
-    public static void onProgressChanged(int newProgress, int total) {
+    public static void onProgressChanged(int newProgress, int total, String siteTitle) {
         progressCircle.setMax(total);
         progressBar.setMax(total);
         progressBar.setProgress(newProgress);
         progressCircle.setProgress(newProgress);
         loadProgressTV.setText(newProgress + "/" + total);
+        if(siteTitle != null){
+            siteTitleTV.setText(siteTitle);
+        }
 
         if (newProgress < total && progressBar.getVisibility() == ProgressBar.GONE) {
             progressIndicatorBg.setVisibility(FrameLayout.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
             progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
             loadProgressTV.setVisibility(TextView.VISIBLE);
+            siteTitleTV.setVisibility(TextView.VISIBLE);
         }
         if (newProgress >= total) {
             progressCircle.setVisibility(CircularProgressIndicator.GONE);
             progressBar.setVisibility(ProgressBar.GONE);
             progressIndicatorBg.setVisibility(View.GONE);
             loadProgressTV.setVisibility(TextView.GONE);
-
+            siteTitleTV.setVisibility(TextView.GONE);
 
             swipe.setRefreshing(false);
         } else {
@@ -636,6 +642,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             progressCircle.setVisibility(CircularProgressIndicator.VISIBLE);
             loadProgressTV.setVisibility(TextView.VISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
+            siteTitleTV.setVisibility(TextView.VISIBLE);
         }
 
         //webView.loadData("<br><br><br><center><h1>Loading...</h1></center><br><center><h2>(" + newProgress + " of " + total + ")</h2></center>", "text/html; charset=utf-8", "UTF-8");

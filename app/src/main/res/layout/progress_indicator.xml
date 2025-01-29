@@ -52,4 +52,17 @@
 
     </TextView>
 
+    <TextView
+        android:id="@+id/siteTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="@string/current_site_title_is_not_provided"
+        android:textAlignment="center"
+        android:textColor="#666666"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loadProgressTextView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

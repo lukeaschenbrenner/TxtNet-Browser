@@ -69,4 +69,5 @@
     <string name="shizuku_incompatible_continue">Reload module</string>
     <string name="request_sms_outgoing_exceeded_error">&lt;p&gt;Error: Your request Exceeded Max SMS Limit. The website requested was too large.&lt;p&gt;</string>
     <string name="newServerInfoStr">Input a phone number that you would like to connect to.\nThe number must be hosting a TxtNet Server instance.\nNOTE: If you do not wish to use client features and only wish to host a server,\nplease input an fake number such as\n+15555555555</string>
+    <string name="current_site_title_is_not_provided">No Title</string>
 </resources>
