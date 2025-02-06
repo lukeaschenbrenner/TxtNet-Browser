@@ -1,5 +1,6 @@
 package com.txtnet.txtnetbrowser.server;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.v2r;
 
@@ -56,7 +57,7 @@ public class SmsSocket {
         this.service = service;
         MAX_SMS_PER_REQUEST = maxSmsPerRequest;
         SMS_SERVER_SEND_INTERVAL_MS = smsSendIntervalMs;
-        sentPI = PendingIntent.getBroadcast(service.getApplication().getApplicationContext(), 0,new Intent("SMS_SENT"), 0);
+        sentPI = PendingIntent.getBroadcast(service.getApplication().getApplicationContext(), 0,new Intent("SMS_SENT"), FLAG_IMMUTABLE);
     }
     public SmsSocket(){
         inputRequestBuffer = new ArrayList<>();
