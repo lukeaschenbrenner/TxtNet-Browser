@@ -142,12 +142,16 @@ public class ServerWebViewClient extends WebViewClient {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             final Uri uri = Uri.parse(url);
             //     return handleUri(uri); //false
-            view.loadUrl(url);
+            HashMap<String, String> headers = new HashMap<String, String>(1);
+            headers.put("User-Agent", view.getSettings().getUserAgentString());
+            //TODO: Allow user to choose custom user agent as a configurable value to avoid device association
+            view.loadUrl(url, headers);
             isRedirected = true;
             return true;
         }
 
-        @TargetApi(Build.VERSION_CODES.N)
+
+    @TargetApi(Build.VERSION_CODES.N)
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest
         request) {

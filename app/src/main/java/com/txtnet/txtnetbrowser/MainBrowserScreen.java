@@ -411,9 +411,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             @Override
             public void onClick(View v) {
 
-                webView.getSettings().setJavaScriptEnabled(true);
-
-                webView.loadUrl("file:///android_asset/dashboard/index.html");
+                webView.loadUrl("https://home/"); // In order to allow WebView clients to intercept the request to an android asset url, we give it a unique pseudonym
                 urlEditText.setText("");
                 //urlEditText.setText(url);
 
@@ -434,8 +432,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             TextMessageHandler.getInstance().sendTextMessage(url);
             urlEditText.setText(url);
         }else{
-            webView.getSettings().setJavaScriptEnabled(true);
-            webView.loadUrl("file:///android_asset/dashboard/index.html");
+            webView.loadUrl("https://home/");
         }
 
     }

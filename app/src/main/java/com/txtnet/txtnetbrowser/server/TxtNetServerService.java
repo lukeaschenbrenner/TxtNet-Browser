@@ -105,6 +105,7 @@ public class TxtNetServerService extends Service {
     private final int NOTIFICATION_ID = 43;
     private int WEBVIEWS_LIMIT = 5;
     public static int MAX_SMS_PER_REQUEST;
+    public static int SMS_SERVER_SEND_INTERVAL_MS;
    // private final int WEBVIEWS_LIMIT = 2; // use for testing!
 
     public ServiceHandler serviceHandler;
@@ -131,6 +132,8 @@ public class TxtNetServerService extends Service {
             WEBVIEWS_LIMIT = tempNum;
         }
         MAX_SMS_PER_REQUEST = intent.getIntExtra("maxOutgoingSmsPerRequest", 100);
+        SMS_SERVER_SEND_INTERVAL_MS = intent.getIntExtra("smsSendIntervalMs", 5000);
+
 
         webViewsLayout = new LinearLayout(this);
         webViewsLayout.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
@@ -423,7 +426,7 @@ In activity:
             if(smsDataBase.containsKey(number)){
                 sock = smsDataBase.get(number);
             }else{
-                sock = new SmsSocket(number, TxtNetServerService.this, MAX_SMS_PER_REQUEST);
+                sock = new SmsSocket(number, TxtNetServerService.this, MAX_SMS_PER_REQUEST, SMS_SERVER_SEND_INTERVAL_MS);
                 smsDataBase.put(number, sock);
             }
 

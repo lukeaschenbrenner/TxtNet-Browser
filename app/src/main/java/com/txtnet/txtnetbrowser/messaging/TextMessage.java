@@ -128,7 +128,7 @@ public class TextMessage {
 
                 //Finally, load the data with result.toString()
              //   Log.d("APPARENT URL: ", url);
-                MainBrowserScreen.webView.loadDataWithBaseURL(url, result.toString(), "text/html", "utf-8", null);
+                MainBrowserScreen.webView.loadDataWithBaseURL(url, result.toString(), "text/html", "utf-8", url);
 
             } catch (Exception e) {
                 e.printStackTrace();

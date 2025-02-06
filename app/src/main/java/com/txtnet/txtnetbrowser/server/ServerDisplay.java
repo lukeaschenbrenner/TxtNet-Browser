@@ -49,7 +49,7 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
     public static final int OPEN_NEW_ACTIVITY = 123456;
     public final static String CHANNEL_ID = "SERVER_NOTIFS";
     private final static int SHIZUKU_CODE = 31;
-    EditText maxOutgoingSmsPerRequest, maxWebViews;
+    EditText maxOutgoingSmsPerRequest, maxWebViews, smsSendIntervalMs;
     SharedPreferences preferences;
 
 
@@ -107,10 +107,12 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
 
         }
 
+        smsSendIntervalMs = (EditText) findViewById(R.id.smsSendIntervalMs);
         maxOutgoingSmsPerRequest = (EditText) findViewById(R.id.maxOutgoingSmsPerRequest);
         maxWebViews = (EditText) findViewById(R.id.maxWebViews);
         preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
+        smsSendIntervalMs.setText(String.valueOf(preferences.getInt("smsSendIntervalMs", 5000)));
         maxWebViews.setText(String.valueOf(preferences.getInt("maxWebViews", 5)));
         maxOutgoingSmsPerRequest.setText(String.valueOf(preferences.getInt("maxOutgoingSmsPerRequest", 100)));
 
@@ -382,10 +384,13 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         // implementation that we know will be running in our own process
         // (and thus won't be supporting component replacement by other
         // applications).
-        SharedPreferences.Editor edit = preferences.edit();
-        edit.putInt("maxWebViews", Integer.parseInt(maxWebViews.getText().toString()));
-        edit.putInt("maxOutgoingSmsPerRequest", Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
-        edit.apply();
+        if(!preferences.contains("maxWebViews") || !preferences.contains("maxOutgoingSmsPerRequest") || !preferences.contains("smsSendIntervalMs")){
+            SharedPreferences.Editor edit = preferences.edit();
+            edit.putInt("maxWebViews", Integer.parseInt(maxWebViews.getText().toString()));
+            edit.putInt("maxOutgoingSmsPerRequest", Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
+            edit.putInt("smsSendIntervalMs", Integer.parseInt(smsSendIntervalMs.getText().toString()));
+            edit.apply();
+        }
 
         Intent intent = new Intent(ServerDisplay.this, TxtNetServerService.class);
         intent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
@@ -393,6 +398,8 @@ public class ServerDisplay extends AppCompatActivity implements Shizuku.OnReques
         Log.i("max", "maxwebviews set to " + Integer.parseInt(maxWebViews.getText().toString()));
         intent.putExtra("maxOutgoingSmsPerRequest", Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
         Log.i("max", "maxOutgoingSmsPerRequest set to " + Integer.parseInt(maxOutgoingSmsPerRequest.getText().toString()));
+        intent.putExtra("smsSendIntervalMs", Integer.parseInt(smsSendIntervalMs.getText().toString()));
+        Log.i("max", "smsSendIntervalMs set to " + Integer.parseInt(smsSendIntervalMs.getText().toString()));
 
         if (bindService(intent,
                 mConnection, Context.BIND_AUTO_CREATE)) {

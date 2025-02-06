@@ -43,6 +43,8 @@ import com.txtnet.txtnetbrowser.receiver.SmsDeliveredReceiver;
 import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
 import com.txtnet.txtnetbrowser.server.SmsSocket;
 import com.txtnet.txtnetbrowser.server.TxtNetServerService;
+import com.txtnet.txtnetbrowser.util.CRC5;
+import com.txtnet.txtnetbrowser.util.Index;
 
 
 public class TextMessageHandler {
@@ -265,12 +267,52 @@ public class TextMessageHandler {
                             if(txtmsg == null){
                                 Log.i(TAG, "txtmsg object is null. TODO: fix static object reference");
                             }
-                            int messageNumber = Base10Conversions.r2v(Message.substring(0, 2));
-                            String messageBody = Message.substring(2);
+
+                            // Payload data, we need to verify the CRC5 on each message and possibly request it again.
+
+
+                            int[] CRCMsgArray = CRC5.unpackCRC5(Base10Conversions.r2v(Message.substring(0, 2)));
+                            assert CRCMsgArray.length == 2;
+
+                            int smsIndex = CRCMsgArray[0];
+                            int crc5 = CRCMsgArray[1];
+
+                            String actualIndexEncoded = (Base10Conversions.v2r(new int[]{smsIndex})[0]);
+                            String newMessageWithoutCRC = actualIndexEncoded + Message.substring(2);
+
+                            Encode decoder = new Encode();//Encoder with parameters reversed, actually decoding
+
+                            String[] payloadData = Base10Conversions.explode(Message.substring(2));
+                            int[] payloadDataAsInts = new int[payloadData.length];
+                            for(int i = 0; i < payloadDataAsInts.length; i++){
+                                payloadDataAsInts[i] = Index.findIndex(SYMBOL_TABLE, payloadData[i]);
+                            }
+                            int[] decoded = decoder.encode_raw(114, 256, 158, 134, payloadDataAsInts);
+                            byte[] decodedBytes = new byte[decoded.length];
+                            for(int i = 0; i < decoded.length; i++){
+                                decodedBytes[i] = (byte) decoded[i]; //trying to encode an int array (0 to 256) as a byte array (-128 to 127). Should be okay?
+                            }
+
+                            if(CRC5.computeCRC5(decodedBytes) == crc5){
+                                Log.d(String.valueOf(SmsSocket.class), "CRC5 for single SMS matches");
+
+                                int messageNumber = Base10Conversions.r2v(actualIndexEncoded);
+                                String messageBody = Message.substring(2);
+                                txtmsg.addPart(messageNumber, messageBody);
+
+                            }else{
+                                Log.e(this.TAG, "CRC DOES NOT MATCH. FROM SERVER: " + crc5 +  "; CALCULATED OURSELVES: " + CRC5.computeCRC5(decodedBytes));
+                                Toast.makeText(MainBrowserScreen.mContext, "An SMS was corrupted from the server. Try your request again.", Toast.LENGTH_LONG).show();
+                                // TODO: we need to request this part again since the CRC failed the check.
+                            }
+
+
+
+
+
                            // Log.d("msg body: ", Message.substring(2));
                             // txtmsg.addPart(Integer.parseInt(textOrder), Message.substring(2));
 
-                            txtmsg.addPart(messageNumber, messageBody);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -351,7 +393,7 @@ public class TextMessageHandler {
                             //if the message ends up being a new request, we need to clear out the previous arraylist inside of the SmsSocket.
                             Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                         }else{
-                            TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance, TxtNetServerService.MAX_SMS_PER_REQUEST));
+                            TxtNetServerService.smsDataBase.put(incomingPhone, new SmsSocket(incomingPhone, TxtNetServerService.instance, TxtNetServerService.MAX_SMS_PER_REQUEST, TxtNetServerService.SMS_SERVER_SEND_INTERVAL_MS));
                             //TODO: Fix the above code to avoid static object reference(??)
                             Objects.requireNonNull(TxtNetServerService.smsDataBase.get(incomingPhone)).addPart(Message.toString());
                             //attempt to parse it as if it was a user request. if parsing fails, stop.

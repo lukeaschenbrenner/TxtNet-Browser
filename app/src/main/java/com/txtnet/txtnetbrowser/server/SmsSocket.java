@@ -3,7 +3,12 @@ package com.txtnet.txtnetbrowser.server;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.v2r;
 
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -14,6 +19,8 @@ import com.txtnet.brotli4droid.encoder.BrotliOutputStream;
 import com.txtnet.txtnetbrowser.R;
 import com.txtnet.txtnetbrowser.basest.Base10Conversions;
 import com.txtnet.txtnetbrowser.basest.Encode;
+import com.txtnet.txtnetbrowser.receiver.SmsSentReceiver;
+import com.txtnet.txtnetbrowser.util.CRC5;
 import com.txtnet.txtnetbrowser.util.Index;
 
 import java.io.BufferedReader;
@@ -25,12 +32,13 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SmsSocket {
     //private final int COMPRESSION_QUALITY_LEVEL = 11;
     public ArrayList<String> inputRequestBuffer;
-    int finalBufferLength = 9999;
+    int finalBufferLength = 406;
     public StringBuilder decodedUrl = new StringBuilder();
     public ArrayList<String> outputMessagesBuffer;
     private Phonenumber.PhoneNumber phoneNumber;
@@ -38,15 +46,23 @@ public class SmsSocket {
     private TxtNetServerService service = null;
     private boolean isSending = false;
     private int MAX_SMS_PER_REQUEST;
-    public SmsSocket(Phonenumber.PhoneNumber number, TxtNetServerService service, int maxSmsPerRequest) {
+    private int SMS_SERVER_SEND_INTERVAL_MS;
+    private final SmsManager sms = SmsManager.getDefault();
+    PendingIntent sentPI;
+
+    public SmsSocket(Phonenumber.PhoneNumber number, TxtNetServerService service, int maxSmsPerRequest, int smsSendIntervalMs) {
         this();
         this.phoneNumber = number;
         this.service = service;
         MAX_SMS_PER_REQUEST = maxSmsPerRequest;
+        SMS_SERVER_SEND_INTERVAL_MS = smsSendIntervalMs;
+        sentPI = PendingIntent.getBroadcast(service.getApplication().getApplicationContext(), 0,new Intent("SMS_SENT"), 0);
     }
     public SmsSocket(){
         inputRequestBuffer = new ArrayList<>();
         outputMessagesBuffer = new ArrayList<>();
+        MAX_SMS_PER_REQUEST = 1; //this constructor should never be used
+        SMS_SERVER_SEND_INTERVAL_MS = 5000;
     }
 
     public ArrayList<String> createEncodedQueue(String plainTextHTML){
@@ -121,13 +137,32 @@ public class SmsSocket {
         for(int j = 0; j < indices.length; j++){
             indices[j] = j;
         }
-        String[] indexCharacters = v2r(indices);
+
         //Log.i(TAG, smsQueue.size() + "<smsqueue indexcharacters>" + indexCharacters.length);
-        for(int k = 0; k < indexCharacters.length; k++){
+        for(int k = 0; k < indices.length; k++){
             //if(k == smsQueue.size()-1){
             //    smsQueue.set(k, SYMBOL_TABLE[SYMBOL_TABLE.length-1] + SYMBOL_TABLE[SYMBOL_TABLE.length-1] + smsQueue.get(k));
             //}else{
-            smsQueue.set(k, indexCharacters[k] + smsQueue.get(k));
+            String currentSMS = smsQueue.get(k);
+
+            Encode decoder = new Encode();//Encoder with parameters reversed, actually decoding
+
+            String[] payloadData = Base10Conversions.explode(currentSMS);
+            int[] payloadDataAsInts = new int[payloadData.length];
+
+            for(int i = 0; i < payloadDataAsInts.length; i++){
+                payloadDataAsInts[i] = Index.findIndex(SYMBOL_TABLE, payloadData[i]);
+            }
+            int[] decoded = decoder.encode_raw(114, 256, 158, 134, payloadDataAsInts);
+            byte[] decodedBytes = new byte[decoded.length];
+            for(int i = 0; i < decoded.length; i++){
+                decodedBytes[i] = (byte) decoded[i]; //trying to encode an int array (0 to 256) as a byte array (-128 to 127). Should be okay?
+            }
+            int crc5 = CRC5.computeCRC5(decodedBytes);
+            int crc5WithIndex = CRC5.packWithCRC5(indices[k], crc5);
+
+            smsQueue.set(k, (v2r(new int[]{crc5WithIndex})[0]) + smsQueue.get(k));
+
             //}
         }
         return smsQueue;
@@ -137,11 +172,9 @@ public class SmsSocket {
         this.sendHTML(html, "Untitled");
     }
 
-    public void sendHTML(String html, String pageTitle){
+    public void sendHTML(String html, String pageTitle) {
 
         ArrayList<String> smsQueue = createEncodedQueue(html);
-
-        SmsManager sms = SmsManager.getDefault();
 
         String outputNumber = "";
         if(phoneNumber.hasCountryCode()){
@@ -174,23 +207,19 @@ public class SmsSocket {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        int currentMessageID = 0;
         isSending = true;
-        while(shouldSend.get() && currentMessageID < smsQueue.size()){
-            sms.sendTextMessage(outputNumber, null, smsQueue.get(currentMessageID), null, null);
-            currentMessageID++;
-          //  try {
-          //      Thread.sleep(100);
-          //  } catch (InterruptedException e) {
-          //      e.printStackTrace();
-          //  }
+
+        try{
+            service.getApplication().getApplicationContext().registerReceiver(SmsSentReceiver.class.newInstance(), new IntentFilter("SMS_SENT"));
+
+        }catch(IllegalAccessException e){
+
+        }catch( InstantiationException e){
+
         }
-        isSending = false;
 
-        //Log.i(TAG, "currentmessageid: " + currentMessageID + ", smsqueue.size: " + smsQueue.size() + " shouldSend: " + shouldSend);
-
-        boolean wasFalse = shouldSend.compareAndSet(false, true);
-//        if(!shouldSend.get()){
+        sendMessagesSynchronously(smsQueue, outputNumber, shouldSend, SMS_SERVER_SEND_INTERVAL_MS);
+  //        if(!shouldSend.get()){
 //            Log.i(TAG, "not shouldsend!");
 //            shouldSend.set(true);
 //        }
@@ -208,6 +237,43 @@ public class SmsSocket {
 
 
 
+    private void sendMessagesSynchronously(List<String> smsQueue, String outputNumber, AtomicBoolean shouldSend, int intervalMs) {
+        for (int i = 0; i < smsQueue.size(); i++) {
+            long startTime = System.currentTimeMillis();
+            if (!shouldSend.get()) {
+                Log.e(this.toString(), "shouldSend has been set to FALSE. Stopping SMS sending.");
+                isSending = false; // possibly not thread-safe, but are SmsSocket instances and SMS_Sender_Threads 1:1?
+                boolean sendingManualStopOccurred = shouldSend.compareAndSet(false, true);
+                return;
+            }
+            sms.sendTextMessage(outputNumber, null, smsQueue.get(i), sentPI, null);
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+
+            long remainingWaitTime = intervalMs - elapsedTime;
+            if (remainingWaitTime > 0) {
+                try {
+                    Thread.sleep(remainingWaitTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+
+        try {
+            Thread.sleep(10000); // Sleep for 10 seconds after the final message
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally{
+            isSending = false; // possibly not thread-safe, but are SmsSocket instances and SMS_Sender_Threads 1:1?
+            boolean sendingManualStopOccurred = shouldSend.compareAndSet(false, true);
+
+        }
+    }
+
+
+
 
     private final String TAG = "SmsSocketMessage";
     private int howManyAdded = 0;
@@ -216,25 +282,37 @@ public class SmsSocket {
     //Context context;
 
 
+    /*
+    * This method is what the server uses to add multipart client URL requests. If an HTTP GET URL is too long, they send it in multiple (non-Brotli-compressed) parts.
+    *  */
     public void addPart(String message) throws Exception {
         if(message == null){
             Log.e(TAG, "ERR: Message is null.");
             return;
         }
 
+
         if(message.matches("^([0-9]){2}(?s).*$")){ // message is the first message
+            //TODO: There is a bug in this condition. The first SMS sent from the client to the server contains the number of total messages to expect
+            //  embedded within the first 2 characters as a 2-digit uint, where the index usually is for all the other messages. We treat this message with index 0 and use the 2 digits to set the buffer size.
+            //  due to how the symbol table is written, it takes over index 99 (decimal) to reach a base114-encoded message that contains two consecutive integers. So right now, this is not an issue.
+            //  BUT in the future, if this index is somehow expanded (eg. switched to base114), a new solution needs to be found or the queue will reset every time it reaches base114-index "00".
+
             // || (message.startsWith("àà") && (!inputRequestBuffer.isEmpty()) && inputRequestBuffer.size() > 0)){
             inputRequestBuffer.clear();
             finalBufferLength = Integer.parseInt(message.substring(0, 2)) + 1;
             Log.w(TAG, "First message detected with finalBufferLength " + finalBufferLength);
             //reassembled = new String[inputRequestBuffer.size()];
+            inputRequestBuffer.add(message);
+
+        }else {
+            inputRequestBuffer.add(message);
         }
        // if(reassembled == null){
        //     reassembled = new String[inputRequestBuffer.size()];
        // }
 
 
-        inputRequestBuffer.add(message);
 
         if(inputRequestBuffer.size() >= finalBufferLength) { // || finalBufferLength == 1
             String[] reassembled = new String[inputRequestBuffer.size()];
@@ -253,6 +331,7 @@ public class SmsSocket {
                     // Instead, we simply append the number instead of @@, which allows us to have 100 SMS messages in one request before encoding may possibly use two digits at the beginning. Considering the actual max is 12996, this is a far cry from the potential indexing allowed by base 114 2-character index.
                     // Not a problem right now for URLs, but will become an issue later when trying to transmit binary data
                     textOrder = 0;
+                    //TODO: THERE IS A BUG IN THIS BLOCK CONDITION. SEE ABOVE
 //                    Log.i(TAG, "MATCHES!!" + textOrder);
 
 
