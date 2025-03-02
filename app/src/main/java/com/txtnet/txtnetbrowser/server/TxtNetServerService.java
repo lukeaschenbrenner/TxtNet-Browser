@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
@@ -97,6 +98,7 @@ import org.jsoup.safety.*;
 import org.jsoup.select.Elements;
 import org.jsoup.select.NodeTraversor;
 import org.jsoup.select.NodeVisitor;
+import androidx.core.app.ServiceCompat;
 
 
 public class TxtNetServerService extends Service {
@@ -240,7 +242,12 @@ In activity:
         notificationManager = NotificationManagerCompat.from(context.getApplicationContext());
         Notification notif = builder.build();
         notificationManager.notify(NOTIFICATION_ID, builder.build());
-        startForeground(NOTIFICATION_ID, notif);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE){ // Service types mandatory beginning API 34 (Android 14)
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING | ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else{
+            startForeground(NOTIFICATION_ID, notif);
+        }
 
 
 

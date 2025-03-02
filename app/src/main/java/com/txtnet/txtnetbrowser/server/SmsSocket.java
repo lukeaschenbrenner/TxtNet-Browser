@@ -1,6 +1,7 @@
 package com.txtnet.txtnetbrowser.server;
 
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
+import static androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.SYMBOL_TABLE;
 import static com.txtnet.txtnetbrowser.basest.Base10Conversions.v2r;
 
@@ -13,6 +14,8 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.telephony.SmsManager;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.txtnet.brotli4droid.Brotli4jLoader;
@@ -211,12 +214,11 @@ public class SmsSocket {
         isSending = true;
 
         try{
-            service.getApplication().getApplicationContext().registerReceiver(SmsSentReceiver.class.newInstance(), new IntentFilter("SMS_SENT"));
+            ContextCompat.registerReceiver(service.getApplication().getApplicationContext(),
+                            SmsSentReceiver.class.newInstance(), new IntentFilter("SMS_SENT"), RECEIVER_NOT_EXPORTED);
 
-        }catch(IllegalAccessException e){
-
-        }catch( InstantiationException e){
-
+        }catch(IllegalAccessException | InstantiationException e){
+            Log.e(this.TAG, e.toString());
         }
 
         sendMessagesSynchronously(smsQueue, outputNumber, shouldSend, SMS_SERVER_SEND_INTERVAL_MS);
