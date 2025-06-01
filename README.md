@@ -13,25 +13,15 @@ The app also contains TxtNet Server, a background service that enables your own 
 TxtNet Browser is currently compatible with **Android 4.4 (KitKat) and up** (yes, your old phone can still install it!)
 A Google Play and F-Droid release is planned, but with low priority.
 
-## Public Server Instances
-| Country      | Phone Number | Notes     |
-| :---        |    :----:   | :---        |
-| United States      | +1(913)203-2719 | Uptime is low. Supports SMS to all +1 (US/Canada) numbers in addition to [these countries](https://github.com/lukeaschenbrenner/TxtNet-Browser/issues/2#issuecomment-1510506701). May be phased out by late 2025.   |
-|    |      |     |
+> ❗ **If you are a first-time user**, note that there is no public phone number at this time. This means to use this app, you must have a **second phone** connected to the internet with its own phone number.
 
-Let me know if you are interested in hosting a server instance for your area!
+## Public Server Instances
+| Country       |     Phone Number     | Notes                                                                                                                                                                                                        |
+| :------------ | :------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| United States | 📴No longer available | As of June 2025, I am no longer funding a +1 Country Code instance. If you would be interested in supporting a public instance (financially or otherwise), please reach out to the email in my profile page. |
+|               |                      |                                                                                                                                                                                                              |
 
 > ⚠️**Please note**: All web traffic  should be considered unencrypted, as all requests are made over SMS and received in plaintext by the server!
-
-## How it works (client)
-
-This app uses a permission that allows a broadcast reciever to recieve and parse incoming SMS messages without the need for the app to be registered as the user's default messaging app. While granting an app SMS permissions poses a security concern, the code for this app is open source and all code involving the use of internet permissions are compartamentalized to the server module. This ensures that unless the app is setup to be a server, no internet traffic is transmitted. In addition, as the client, SMS messages are only programatically sent to and recieved from a registered server phone number.
-The app communicates with a "server phone number", which is a phone number controlled by a "server host" that communicates directly over SMS using Android's SMS APIs. Each URL request is sent, encoded in a custom base 114, to the server. Usually, this only requires 1 SMS, but just in case, each message is prepended with an order specifier. When the server receives a request, the server uses an Android WebView component to programatically request the website in a manner that simulates a regular request, to avoid restrictions some services (such as Cloudflare) place on HTTP clients. By doing this, any Javascript can also execute on the website, allowing content to be dynamically loaded into the HTML if needed. Once the page is loaded, only the HTML is transferred back to the recipient device. The HTML is stripped of unnecessary tags and attributes, compressed into raw bytes, and then encoded. Once encoded, the messages are split into 160 character numbered segments (maximizing the [GSM-7 standard](https://en.wikipedia.org/wiki/GSM_03.38) SMS size) and sent to the client app for parsing and displaying.
-
-Side note: Compression savings have been estimated to be an average of 20% using Brotli, but oftentimes it can save much more! For example, the website `example.com` in stripped HTML is 285 characters, but only requires 2 SMS messages (189 characters) to receive. Even including the 225% overhead in data transmission, it is still more efficient!
-
-#### Why encode the HTML in the first place?
-SMS was created in 1984, and was created to utilize the extra bytes from the data channels in phone signalling. It was originally conceived to only support 128 characters in a 7-bit alphabet. When further characters were required to support a subset of the UTF-8 character set, a new standard called UCS-2 was created. Still limited by the 160 bytes available, UCS-2 supports more characters (many of which show up in HTML documents) but limits SMS sizes to 70 characters per SMS. By encoding all data in GSM-7, more data can be sent per SMS message than sending the raw HTML over SMS. It is possible that it may be even more efficient to create an encoding system using all the characters available in UCS-2, but this limits compatibility and is out of the scope of the project.
 
 ## Server Hosting
 TxtNet Browser has been rewritten to include a built-in server hosting option inside the app. Instead of the now-deprecated Python server using a paid SMS API, any user can now act as a server host, allowing for distributed communication.  
@@ -39,7 +29,6 @@ To enable the background service, tap on the overflow menu and select "TxtNet Se
 TxtNet Server uses your primary mobile number associated with the active carrier subscription SIM as a number that others can add and connect to.  
 Please note that this feature is still in early stages of development and likely has many issues. Please submit issue reports for any problems you encounter.  
 For Android 4.4-6.0, you will need to run adb commands one time as specified in the app. For Android 6.0-10.0, you may also use Skizuku, but a PC will still be required once. For Android 11+, no PC is required to activate the server using [Shizuku](https://shizuku.rikka.app/guide/setup/).
-
 
 ##### Desktop Server Installation (Deprecated)
 <details>
@@ -54,16 +43,21 @@ For Android 4.4-6.0, you will need to run adb commands one time as specified in 
 8. In the TxtNet Browser app, press the three dots and press "Change Server Phone Number". Enter in the phone number you purchased from Twilio and press OK!  
 </details>
 
+## How it works (client)
+
+This app uses a permission that allows a broadcast reciever to recieve and parse incoming SMS messages without the need for the app to be registered as the user's default messaging app. While granting an app SMS permissions poses a security concern, the code for this app is open source and all code involving the use of internet permissions are compartamentalized to the server module. This ensures that unless the app is setup to be a server, no internet traffic is transmitted. In addition, as the client, SMS messages are only programatically sent to and recieved from a registered server phone number.
+The app communicates with a "server phone number", which is a phone number controlled by a "server host" that communicates directly over SMS using Android's SMS APIs. Each URL request is sent, encoded in a custom base 114, to the server. Usually, this only requires 1 SMS, but just in case, each message is prepended with an order specifier. When the server receives a request, the server uses an Android WebView component to programatically request the website in a manner that simulates a regular request, to avoid restrictions some services (such as Cloudflare) place on HTTP clients. By doing this, any Javascript can also execute on the website, allowing content to be dynamically loaded into the HTML if needed. Once the page is loaded, only the HTML is transferred back to the recipient device. The HTML is stripped of unnecessary tags and attributes, compressed into raw bytes, and then encoded. Once encoded, the messages are split into 160 character numbered segments (maximizing the [GSM-7 standard](https://en.wikipedia.org/wiki/GSM_03.38) SMS size) and sent to the client app for parsing and displaying.
+
 ## FAQ/Troubleshooting
 
 Bugs:
-- Many carriers are unnecessarily rate limiting incoming text messages, so a page may look as though it "stalled" while loading on large pages. As of now the only way to fix this is to wait!
+- Many carriers are unnecessarily rate limiting incoming text messages, so a page may look as though it "stalled" while loading on large pages. This can be mitigated by increasing the SMS Send Interval on the server.
 - In congested networks, it's possible for a mobile carrier to drop one or more SMS messages before they are received by the client. Currently, the app has no logic to mitigate this issue, so any websites that have stalled for a significant amount of time should be requested again.
 - In Android 12 (or possibly a new version of Google Messages?), there is a new and "improved" messages blocking feature. This results in no SMS messages getting through when a number is blocked, which makes the blocking feature of TxtNet Browser break the app! Instead of blocking messages, to get around this "feature", you can silent message notifications from the server phone number.  
 
-|  |  |  |
-|--|--|--|
-|  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/>  |  <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/Messages_Migrating_Popup.png" alt="Contacts Popup" width="200"/>   |   <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/MigratingBlockedContacts.png" alt="Migrating Contacts" width="200"/>  |
+|                                                                                                                                       |                                                                                                                                                 |                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/silentMessages.png" alt="Silence Number" width="200"/> | <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/Messages_Migrating_Popup.png" alt="Contacts Popup" width="200"/> | <img src="https://github.com/lukeaschenbrenner/TxtNet-Browser/raw/master/media/MigratingBlockedContacts.png" alt="Migrating Contacts" width="200"/> |
 
 ## Screenshots (Outdated, TxtNet 1.0.0)
 
