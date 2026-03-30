@@ -303,7 +303,7 @@ public class TextMessageHandler {
                             }else{
                                 Log.e(this.TAG, "CRC DOES NOT MATCH. FROM SERVER: " + crc5 +  "; CALCULATED OURSELVES: " + CRC5.computeCRC5(decodedBytes));
                                 Toast.makeText(MainBrowserScreen.mContext, "An SMS was corrupted from the server. Try your request again.", Toast.LENGTH_LONG).show();
-                                // TODO: we need to request this part again since the CRC failed the check.
+                                // TODO: Automate requesting a single known part again since the CRC failed. This necessitates caching all parts by the server for some time (a few minutes?)
                             }
 
 
@@ -329,7 +329,7 @@ public class TextMessageHandler {
                             int myVersion = BuildConfig.VERSION_CODE;
                             String body = "TxtNet Server v" + myVersion;
                             if(theirVersion < myVersion){
-                                body += "\nYour version is outdated. Download the newest release at https://bit.ly/txtnet-apk";
+                                body += "\nYour version is outdated. Download the newest TxtNet release on GitHub.";
                             }
                             Log.i(TAG, "Received message " + Message.toString());
                             SmsManager sms = SmsManager.getDefault();

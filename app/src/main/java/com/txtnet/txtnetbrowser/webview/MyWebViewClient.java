@@ -1,5 +1,6 @@
 package com.txtnet.txtnetbrowser.webview;
 
+import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.util.Log;
@@ -30,6 +31,7 @@ public class MyWebViewClient extends WebViewClient {
         this.s = s;
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         if(view == null || url == null){
@@ -61,16 +63,22 @@ public class MyWebViewClient extends WebViewClient {
             s.UpdateMyText(url);
             view.getSettings().setJavaScriptEnabled(false);
             return true;
-        }else if(url.equals("https://home/")){
-            //this code block is likely never run
+        }else if(url.startsWith("https://home/")){
             view.getSettings().setJavaScriptEnabled(true);
-            view.loadUrl("file:///android_asset/dashboard/index.html");
-            return true;
+            String[] attempted_relative_url = url.split("https://home/", 2);
+            String resolved_relative_url = attempted_relative_url.length == 2 ? attempted_relative_url[1] : "index.html";
+            if (attempted_relative_url.length == 2) {
+                view.loadUrl("file:///android_asset/dashboard/" + resolved_relative_url);
+                return true;
+            }
         }
         Log.e(MyWebViewClient.class.getName(), "Unknown scheme URL loaded, preventing the load.");
         return true;
     }
 
+    /**
+     * We must intercept all resource requests (CSS, JS) _only_ for the offline dashboard to trigger loading of tailwindCSS, alpineJS, etc.
+     */
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -97,7 +105,7 @@ public class MyWebViewClient extends WebViewClient {
                     return new WebResourceResponse(
                             "text/html",
                             "utf-8",
-                            s.getAssets().open("dashboard/" + url.substring("https://home/".length())));
+                            s.getAssets().open("dashboard/" + url.split("https://home/", 2)[1]));
                 }
 
             } catch (IOException e) {

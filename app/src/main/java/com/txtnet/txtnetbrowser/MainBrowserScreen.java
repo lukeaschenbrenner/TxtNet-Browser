@@ -186,7 +186,6 @@ public class MainBrowserScreen extends AppCompatActivity {
             siteTitleTV = (TextView) findViewById(R.id.siteTitleTextView);
             siteTitleTV.setVisibility(TextView.GONE);
             webView = findViewById(R.id.web_view);
-//        webView.loadUrl("file:///android_asset/testfile.html");
             swipe = (SwipeRefreshLayout) findViewById(R.id.swipe);
             progressIndicatorBg = (ConstraintLayout) findViewById(R.id.progress_indicator);
 
@@ -398,6 +397,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
                 //    }
                 //}, 5000);
                 swipe.setRefreshing(false);
+                progressIndicatorBg.setVisibility(View.GONE); // Disable opacity overlay for previously shown website, since the requested site will not be parsed
             }
         });
 
@@ -411,8 +411,9 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             @Override
             public void onClick(View v) {
 
-                webView.loadUrl("https://home/"); // In order to allow WebView clients to intercept the request to an android asset url, we give it a unique pseudonym
+                webView.loadUrl("https://home/index.html"); // In order to allow WebView clients to intercept the request to an android asset url, we give it a unique pseudonym
                 urlEditText.setText("");
+                progressIndicatorBg.setVisibility(View.GONE); // Disable opacity overlay in the event of a downed server - allows viewing the offline page with full opacity
                 //urlEditText.setText(url);
 
                 //TextMessageHandler.getInstance().sendTextMessage(urlEditText.getText().toString());
@@ -432,7 +433,7 @@ if (mWebBackForwardList.getCurrentIndex() > 0)
             TextMessageHandler.getInstance().sendTextMessage(url);
             urlEditText.setText(url);
         }else{
-            webView.loadUrl("https://home/");
+            webView.loadUrl("https://home/index.html");
         }
 
     }
