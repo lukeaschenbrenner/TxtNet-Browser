@@ -13,13 +13,13 @@ The app also contains TxtNet Server, a background service that enables your own 
 TxtNet Browser is currently compatible with **Android 4.4 (KitKat) and up** (yes, your old phone can still install it!)
 A Google Play and F-Droid release is planned, but with low priority.
 
-> ❗ **If you are a first-time user**, note that there is no public phone number at this time. This means to use this app, you must have a **second phone** connected to the internet with its own phone number.
+> ❗ **If you are a first-time user**, note that public server instances may not work for you. To guarantee compatibility, you can self-host with a **second phone** connected to the internet, ideally on the same carrier as your primary number.
 
 ## Public Server Instances
-| Country       |     Phone Number     | Notes                    |
-| :------------ | :------------------: |:-------------------------|
-| United States | 📴No longer available | Not currently supported. |
-|               |                      |                          |
+| Country       | Phone Number | Notes                                                                             |
+| :------------ |:------------:|:----------------------------------------------------------------------------------|
+| United States | +19134908639 | AT&T Network supported - currently problems with T-Mobile. Uptime not guaranteed. |
+|               |              |                                                                                   |
 
 > ⚠️**Please note**: All web traffic  should be considered unencrypted, as all requests are made over SMS and received in plaintext by the server!
 
